@@ -17,7 +17,7 @@ export default async function IncidentsPage() {
   ])
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="All incidents"
         description="Every incident reported across all centres. Filter, search, and export the log."

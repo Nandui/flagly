@@ -28,7 +28,7 @@ export function StatCard({
   const body = (
     <div
       className={cn(
-        "group flex items-start justify-between gap-3 rounded-xl border bg-card p-5 shadow-sm transition-colors",
+        "group flex items-start justify-between gap-3 rounded-[var(--radius-card)] border bg-card p-5 shadow-xs transition-colors",
         href && "hover:border-primary/40 hover:bg-accent/40"
       )}
     >

@@ -1,7 +1,7 @@
 import type { IncidentSeverity } from "@prisma/client"
 
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { StatusPill } from "@/components/flagly/shared/StatusPill"
 import { SEVERITY_LABELS, severityBadgeClass } from "@/lib/flagly/utils"
 
 export function IncidentSeverityBadge({
@@ -12,11 +12,8 @@ export function IncidentSeverityBadge({
   className?: string
 }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn(severityBadgeClass(severity), className)}
-    >
+    <StatusPill className={cn(severityBadgeClass(severity), className)}>
       {SEVERITY_LABELS[severity]}
-    </Badge>
+    </StatusPill>
   )
 }

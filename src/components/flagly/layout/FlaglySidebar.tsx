@@ -2,10 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, FileWarning } from "lucide-react"
+import { Building2, FileWarning, LogOut } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { MODULE_NAV, type NavItem } from "@/lib/centrely/modules"
+import { CenterSwitcher } from "@/components/flagly/layout/CenterSwitcher"
+import { ThemeToggle } from "@/components/flagly/layout/ThemeToggle"
+import { logout } from "@/lib/centrely/auth-actions"
+import type { CenterSummary } from "@/lib/centrely/active-center"
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/flagly") return pathname === "/flagly"
@@ -16,89 +20,124 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/flagly/centres", label: "Centres", icon: Building2, cap: "admin" },
 ]
 
-export function FlaglySidebar({
+function initials(name: string): string {
+  return name
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("")
+}
+
+function NavLink({
+  item,
+  pathname,
   onNavigate,
-  role,
 }: {
+  item: NavItem
+  pathname: string
   onNavigate?: () => void
-  role?: string
+}) {
+  const active = isActive(pathname, item.href)
+  const Icon = item.icon
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        active
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          : "text-sidebar-ink/80 hover:bg-sidebar-2 hover:text-ink"
+      )}
+    >
+      <Icon
+        className={cn(
+          "size-[1.15rem] shrink-0",
+          active ? "text-sidebar-accent-foreground" : "text-sidebar-muted group-hover:text-ink"
+        )}
+      />
+      {item.label}
+    </Link>
+  )
+}
+
+export function FlaglySidebar({
+  user,
+  centers,
+  activeCenterId,
+  onNavigate,
+}: {
+  user: { name: string; email: string; role: string }
+  centers: CenterSummary[]
+  activeCenterId: string | null
+  onNavigate?: () => void
 }) {
   const pathname = usePathname()
   const nav = MODULE_NAV.flagly
-  const isAdmin = role === "Admin"
+  const isAdmin = user.role === "Admin"
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-2.5 border-b px-5">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <FileWarning className="size-4.5" />
+      {/* Brand */}
+      <div className="flex items-center gap-2.5 px-5 pb-4 pt-5">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <FileWarning className="size-5" />
         </div>
-        <div className="leading-tight">
-          <p className="font-display text-base font-semibold">Flagly</p>
-          <p className="text-[11px] text-muted-foreground">Centrely suite</p>
+        <div className="leading-none">
+          <span className="block font-display text-lg font-semibold tracking-tight text-ink">
+            Flagly
+          </span>
+          <span className="text-[0.65rem] uppercase tracking-[0.16em] text-sidebar-muted">
+            Incident reporting
+          </span>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
-        {nav.map((item) => {
-          const active = isActive(pathname, item.href)
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-              )}
-            >
-              <Icon className="size-4.5 shrink-0" />
-              {item.label}
-            </Link>
-          )
-        })}
+      {/* Centre switcher */}
+      <div className="px-3 pb-2">
+        <CenterSwitcher centers={centers} activeCenterId={activeCenterId} />
+      </div>
+
+      {/* Nav */}
+      <nav className="scroll-slim flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
+        {nav.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+        ))}
 
         {isAdmin ? (
           <>
-            <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Admin
-            </p>
-            {ADMIN_NAV.map((item) => {
-              const active = isActive(pathname, item.href)
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                  )}
-                >
-                  <Icon className="size-4.5 shrink-0" />
-                  {item.label}
-                </Link>
-              )
-            })}
+            <p className="eyebrow px-3 pb-1 pt-4">Admin</p>
+            {ADMIN_NAV.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+            ))}
           </>
         ) : null}
       </nav>
 
-      <div className="border-t p-3">
-        <Link
-          href="/flagly/incidents/new"
-          onClick={onNavigate}
-          className="flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <FileWarning className="size-4" />
-          Report incident
-        </Link>
+      {/* User footer */}
+      <div className="border-t border-sidebar-line p-3">
+        <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-2 text-xs font-semibold text-sidebar-ink">
+            {initials(user.name || user.email)}
+          </span>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-sm font-medium text-ink">{user.name}</p>
+            <p className="truncate text-[0.7rem] text-sidebar-muted">{user.role}</p>
+          </div>
+          <ThemeToggle />
+          <form action={logout}>
+            <button
+              type="submit"
+              aria-label="Sign out"
+              title="Sign out"
+              className="flex size-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-2 hover:text-ink"
+            >
+              <LogOut className="size-4" />
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

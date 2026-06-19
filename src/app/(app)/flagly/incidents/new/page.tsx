@@ -10,7 +10,7 @@ export default async function NewIncidentPage() {
   const { user, activeCenter, centers } = await getFlaglyContext()
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
       <div className="mx-auto w-full max-w-[760px]">
         <PageHeader
           title="Report an incident"

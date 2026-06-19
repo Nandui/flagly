@@ -1,7 +1,7 @@
 import type { ActionStatus } from "@prisma/client"
 
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { StatusPill } from "@/components/flagly/shared/StatusPill"
 import { ACTION_STATUS_LABELS, actionStatusBadgeClass } from "@/lib/flagly/utils"
 
 export function ActionStatusBadge({
@@ -12,11 +12,8 @@ export function ActionStatusBadge({
   className?: string
 }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn(actionStatusBadgeClass(status), className)}
-    >
+    <StatusPill className={cn(actionStatusBadgeClass(status), className)}>
       {ACTION_STATUS_LABELS[status]}
-    </Badge>
+    </StatusPill>
   )
 }

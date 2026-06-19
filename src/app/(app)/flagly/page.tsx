@@ -43,7 +43,7 @@ export default async function FlaglyDashboardPage() {
 
   if (!activeCenter) {
     return (
-      <div className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      <div className="space-y-6">
         <PageHeader title="Dashboard" description="Incident overview" />
         <EmptyState
           title="No centre selected."
@@ -58,7 +58,7 @@ export default async function FlaglyDashboardPage() {
     data
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Dashboard"
         description={`Incident overview · ${activeCenter.name}`}

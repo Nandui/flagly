@@ -120,13 +120,13 @@ export const SEVERITY_ORDER: IncidentSeverity[] = [
 export function severityBadgeClass(severity: IncidentSeverity): string {
   switch (severity) {
     case "MINOR":
-      return "bg-severity-minor-bg text-severity-minor border-severity-minor-line"
+      return "bg-severity-minor-bg text-severity-minor"
     case "SIGNIFICANT":
-      return "bg-severity-significant-bg text-severity-significant border-severity-significant-line"
+      return "bg-severity-significant-bg text-severity-significant"
     case "REPORTABLE":
-      return "bg-severity-reportable-bg text-severity-reportable border-severity-reportable-line"
+      return "bg-severity-reportable-bg text-severity-reportable"
     case "CRITICAL":
-      return "bg-severity-critical-bg text-severity-critical border-severity-critical-line"
+      return "bg-severity-critical-bg text-severity-critical"
   }
 }
 
@@ -146,37 +146,37 @@ export function severityBorderClass(severity: IncidentSeverity): string {
 export function statusBadgeClass(status: IncidentStatus): string {
   switch (status) {
     case "DRAFT":
-      return "bg-status-draft-bg text-status-draft border-transparent"
+      return "bg-status-draft-bg text-status-draft"
     case "OPEN":
-      return "bg-status-open-bg text-status-open border-transparent"
+      return "bg-status-open-bg text-status-open"
     case "UNDER_INVESTIGATION":
-      return "bg-status-investigating-bg text-status-investigating border-transparent"
+      return "bg-status-investigating-bg text-status-investigating"
     case "CLOSED":
-      return "bg-status-closed-bg text-status-closed border-transparent"
+      return "bg-status-closed-bg text-status-closed"
   }
 }
 
 export function actionStatusBadgeClass(status: ActionStatus): string {
   switch (status) {
     case "OPEN":
-      return "bg-status-open-bg text-status-open border-transparent"
+      return "bg-status-open-bg text-status-open"
     case "IN_PROGRESS":
-      return "bg-status-investigating-bg text-status-investigating border-transparent"
+      return "bg-status-investigating-bg text-status-investigating"
     case "COMPLETE":
-      return "bg-status-closed-bg text-status-closed border-transparent"
+      return "bg-status-closed-bg text-status-closed"
     case "OVERDUE":
-      return "bg-severity-critical-bg text-severity-critical border-severity-critical-line"
+      return "bg-severity-critical-bg text-severity-critical"
   }
 }
 
 export function riddorStatusBadgeClass(status: RiddorStatus): string {
   switch (status) {
     case "PENDING":
-      return "bg-status-investigating-bg text-status-investigating border-transparent"
+      return "bg-status-investigating-bg text-status-investigating"
     case "REPORTED":
-      return "bg-status-closed-bg text-status-closed border-transparent"
+      return "bg-status-closed-bg text-status-closed"
     case "OVERDUE":
-      return "bg-severity-critical-bg text-severity-critical border-severity-critical-line"
+      return "bg-severity-critical-bg text-severity-critical"
   }
 }
 

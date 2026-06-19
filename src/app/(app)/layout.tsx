@@ -2,6 +2,8 @@ import { requireUser } from "@/lib/session"
 import { getActiveCenter } from "@/lib/centrely/active-center"
 import { FlaglyShell } from "@/components/flagly/layout/FlaglyShell"
 
+export const dynamic = "force-dynamic"
+
 export default async function AppLayout({
   children,
 }: {

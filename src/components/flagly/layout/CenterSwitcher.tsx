@@ -37,7 +37,7 @@ export function CenterSwitcher({
         })
       }}
     >
-      <SelectTrigger className="h-9 w-[180px] gap-2 sm:w-[220px]">
+      <SelectTrigger className="h-9 w-full gap-2">
         <Building2 className="size-4 shrink-0 text-muted-foreground" />
         <SelectValue placeholder="Select centre" />
       </SelectTrigger>

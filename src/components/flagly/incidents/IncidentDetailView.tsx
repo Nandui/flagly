@@ -137,7 +137,7 @@ export function IncidentDetailView({
   }
 
   return (
-    <div className="space-y-5 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="space-y-5">
       <Link
         href="/flagly/incidents"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
