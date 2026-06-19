@@ -1,0 +1,235 @@
+// Flagly — Incident Reporting · Part of the Centrely Suite
+// Stack: Prisma + PostgreSQL (Neon on Vercel)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── CENTRELY CORE ────────────────────────────────────────────────────────────
+// Shared models from the Centrely suite. Flagly reuses Center and User exactly as
+// Riskly and Staffly do — same database, same auth, same shell.
+
+model Center {
+  id        String   @id @default(cuid())
+  name      String
+  siteCode  String?  @unique // 2-letter code, e.g. "LW" -> INC-LW-0001
+  region    Region   @default(IRELAND)
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  incidents Incident[]
+  users     User[]
+
+  @@index([siteCode])
+}
+
+enum Region {
+  IRELAND          // HSA Ireland (BeSafe portal)
+  NORTHERN_IRELAND // HSENI
+  GREAT_BRITAIN    // HSE UK
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  role         String   @default("Viewer") // "Viewer" | "Contributor" | "Reviewer" | "Assessor" | "Admin"
+  centerId     String?
+  center       Center?  @relation(fields: [centerId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([centerId])
+}
+
+// ─── FLAGLY ──────────────────────────────────────────────────────────────────
+
+model Incident {
+  id              String           @id @default(cuid())
+  centerId        String
+  center          Center           @relation(fields: [centerId], references: [id])
+  reference       String           @unique // INC-LW-0001
+  type            IncidentType
+  status          IncidentStatus   @default(DRAFT)
+  severity        IncidentSeverity
+  occurredAt      DateTime // exact date + time of the incident
+  location        String // named location within the centre
+  locationDetail  String? // more specific e.g. "deep end, lane 3"
+  description     String // full narrative of what happened
+  immediateAction String? // what was done at the time
+  reportedBy      String // name of person completing the report
+  reportedById    String? // User.id if the reporter is a system user
+  witnessCount    Int              @default(0) // denormalised for display
+  injuredCount    Int              @default(0) // denormalised for display
+  riddorRequired  Boolean          @default(false)
+  closedAt        DateTime?
+  closedBy        String?
+  closureNotes    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  witnesses       Witness[]
+  injuredParties  InjuredParty[]
+  followUpActions FollowUpAction[]
+  riddorFlag      RiddorFlag?
+
+  @@index([centerId])
+  @@index([status])
+  @@index([severity])
+  @@index([occurredAt])
+  @@index([riddorRequired])
+}
+
+enum IncidentType {
+  ACCIDENT // person injured
+  NEAR_MISS // could have caused injury, did not
+  PROPERTY_DAMAGE // damage to building, equipment, vehicles
+  VIOLENCE_AGGRESSION // verbal or physical aggression
+  HAZARDOUS_SUBSTANCE // chemical spill, exposure
+  FIRE_OR_EVACUATION
+  OTHER
+}
+
+enum IncidentStatus {
+  DRAFT // being written, not yet submitted
+  OPEN // submitted, awaiting investigation
+  UNDER_INVESTIGATION
+  CLOSED
+}
+
+enum IncidentSeverity {
+  MINOR // first aid only, no lost time
+  SIGNIFICANT // medical treatment, potential lost time
+  REPORTABLE // meets HSA / RIDDOR reporting threshold
+  CRITICAL // fatality or life-threatening
+}
+
+// ─── WITNESS ─────────────────────────────────────────────────────────────────
+
+model Witness {
+  id             String   @id @default(cuid())
+  incidentId     String
+  incident       Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  name           String
+  roleOrRelation String // e.g. "Lifeguard", "Member", "Contractor"
+  contactPhone   String?
+  contactEmail   String?
+  statement      String
+  statementDate  DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([incidentId])
+}
+
+// ─── INJURED PARTY ───────────────────────────────────────────────────────────
+
+model InjuredParty {
+  id               String           @id @default(cuid())
+  incidentId       String
+  incident         Incident         @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  partyType        InjuredPartyType
+  name             String
+  contactPhone     String?
+  contactEmail     String?
+  address          String?
+  dateOfBirth      DateTime?
+  gender           String?
+  injuryNature     String // e.g. "Laceration", "Fracture", "Suspected concussion"
+  bodyPartAffected String // e.g. "Left forearm", "Head"
+  treatment        TreatmentGiven
+  hospitalName     String? // if HOSPITAL_AE or HOSPITAL_ADMITTED
+  gpReferral       Boolean          @default(false)
+  lostTime         Boolean          @default(false)
+  lostTimeDays     Int?
+  additionalNotes  String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([incidentId])
+}
+
+enum InjuredPartyType {
+  STAFF
+  MEMBER
+  CONTRACTOR
+  VISITOR
+  PUBLIC
+}
+
+enum TreatmentGiven {
+  NONE
+  FIRST_AID_ONLY
+  GP_REFERRAL
+  HOSPITAL_AE
+  HOSPITAL_ADMITTED
+}
+
+// ─── FOLLOW-UP ACTION ────────────────────────────────────────────────────────
+
+model FollowUpAction {
+  id          String       @id @default(cuid())
+  incidentId  String
+  incident    Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  description String
+  assignedTo  String // free text name in v1
+  dueDate     DateTime
+  status      ActionStatus @default(OPEN)
+  completedAt DateTime?
+  completedBy String?
+  notes       String       @default("")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([incidentId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+enum ActionStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETE
+  OVERDUE // computed from dueDate, but stored to enable efficient queries
+}
+
+// ─── RIDDOR / HSA FLAG ───────────────────────────────────────────────────────
+
+model RiddorFlag {
+  id                String             @id @default(cuid())
+  incidentId        String             @unique
+  incident          Incident           @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  authority         ReportingAuthority
+  classification    String // e.g. "Over-3-day injury", "Dangerous occurrence"
+  reportingDeadline DateTime // computed from occurredAt + authority rules
+  status            RiddorStatus       @default(PENDING)
+  reportedAt        DateTime?
+  referenceNumber   String?
+  reportedBy        String?
+  method            String? // e.g. "Online (BeSafe portal)", "Phone"
+  notes             String             @default("")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([status])
+  @@index([reportingDeadline])
+}
+
+enum ReportingAuthority {
+  HSA_IRELAND // Health and Safety Authority — Republic of Ireland (BeSafe portal)
+  HSENI // Health and Safety Executive NI — Northern Ireland
+  HSE_UK // Health and Safety Executive — Great Britain
+}
+
+enum RiddorStatus {
+  PENDING // not yet reported
+  REPORTED // submitted to authority
+  OVERDUE // deadline passed without report
+}

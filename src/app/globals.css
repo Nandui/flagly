@@ -1,0 +1,202 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Centrely base tokens (shadcn-compatible). Light-first, dark mode supported.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  /* Font families (loaded via <link> to Google Fonts in the root layout) */
+  --font-space-grotesk: "Space Grotesk";
+  --font-ibm-plex-sans: "IBM Plex Sans";
+  --font-ibm-plex-mono: "IBM Plex Mono";
+
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #4f46e5;
+
+  /* Flagly severity tokens */
+  --severity-minor: #15803d;
+  --severity-minor-bg: #dcfce7;
+  --severity-minor-line: #86efac;
+
+  --severity-significant: #a16207;
+  --severity-significant-bg: #fef3c7;
+  --severity-significant-line: #fcd34d;
+
+  --severity-reportable: #c2410c;
+  --severity-reportable-bg: #ffe8d6;
+  --severity-reportable-line: #fdba74;
+
+  --severity-critical: #b91c1c;
+  --severity-critical-bg: #fee2e2;
+  --severity-critical-line: #fca5a5;
+
+  /* Incident status tokens */
+  --status-draft: #94a3b8;
+  --status-draft-bg: #f1f5f9;
+
+  --status-open: #4f46e5;
+  --status-open-bg: #eef2ff;
+
+  --status-investigating: #a16207;
+  --status-investigating-bg: #fef3c7;
+
+  --status-closed: #15803d;
+  --status-closed-bg: #dcfce7;
+}
+
+.dark {
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+  --card: #0f172a;
+  --card-foreground: #e2e8f0;
+  --popover: #0f172a;
+  --popover-foreground: #e2e8f0;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #1e293b;
+  --input: #243044;
+  --ring: #6366f1;
+
+  /* Flagly severity tokens — dark variants */
+  --severity-minor: #4ade80;
+  --severity-minor-bg: #052e1a;
+  --severity-minor-line: #166534;
+
+  --severity-significant: #fbbf24;
+  --severity-significant-bg: #3b2705;
+  --severity-significant-line: #854d0e;
+
+  --severity-reportable: #fb923c;
+  --severity-reportable-bg: #431407;
+  --severity-reportable-line: #9a3412;
+
+  --severity-critical: #f87171;
+  --severity-critical-bg: #450a0a;
+  --severity-critical-line: #991b1b;
+
+  /* Incident status tokens — dark variants */
+  --status-draft: #94a3b8;
+  --status-draft-bg: #1e293b;
+
+  --status-open: #818cf8;
+  --status-open-bg: #1e1b4b;
+
+  --status-investigating: #fbbf24;
+  --status-investigating-bg: #3b2705;
+
+  --status-closed: #4ade80;
+  --status-closed-bg: #052e1a;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Theme mapping — exposes tokens as Tailwind utilities (bg-*, text-*, border-*)
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Flagly severity */
+  --color-severity-minor: var(--severity-minor);
+  --color-severity-minor-bg: var(--severity-minor-bg);
+  --color-severity-minor-line: var(--severity-minor-line);
+  --color-severity-significant: var(--severity-significant);
+  --color-severity-significant-bg: var(--severity-significant-bg);
+  --color-severity-significant-line: var(--severity-significant-line);
+  --color-severity-reportable: var(--severity-reportable);
+  --color-severity-reportable-bg: var(--severity-reportable-bg);
+  --color-severity-reportable-line: var(--severity-reportable-line);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-critical-bg: var(--severity-critical-bg);
+  --color-severity-critical-line: var(--severity-critical-line);
+
+  /* Flagly status */
+  --color-status-draft: var(--status-draft);
+  --color-status-draft-bg: var(--status-draft-bg);
+  --color-status-open: var(--status-open);
+  --color-status-open-bg: var(--status-open-bg);
+  --color-status-investigating: var(--status-investigating);
+  --color-status-investigating-bg: var(--status-investigating-bg);
+  --color-status-closed: var(--status-closed);
+  --color-status-closed-bg: var(--status-closed-bg);
+
+  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-ibm-plex-sans), sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.011em;
+  }
+}
+
+/* Utility: hide scrollbars on horizontal scroll regions (tab bars on mobile) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
