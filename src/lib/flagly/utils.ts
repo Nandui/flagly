@@ -5,6 +5,7 @@ import type {
   IncidentStatus,
   IncidentType,
   InjuredPartyType,
+  Region,
   ReportingAuthority,
   RiddorStatus,
   TreatmentGiven,
@@ -85,6 +86,12 @@ export const RIDDOR_STATUS_LABELS: Record<RiddorStatus, string> = {
   OVERDUE: "Overdue",
 }
 
+export const REGION_LABELS: Record<Region, string> = {
+  IRELAND: "Republic of Ireland",
+  NORTHERN_IRELAND: "Northern Ireland",
+  GREAT_BRITAIN: "Great Britain",
+}
+
 // Option arrays for <Select> controls.
 export function toOptions<T extends string>(
   labels: Record<T, string>
@@ -99,6 +106,7 @@ export const INCIDENT_TYPE_OPTIONS = toOptions(INCIDENT_TYPE_LABELS)
 export const INJURED_PARTY_TYPE_OPTIONS = toOptions(INJURED_PARTY_TYPE_LABELS)
 export const TREATMENT_OPTIONS = toOptions(TREATMENT_LABELS)
 export const AUTHORITY_OPTIONS = toOptions(AUTHORITY_LABELS)
+export const REGION_OPTIONS = toOptions(REGION_LABELS)
 
 export const SEVERITY_ORDER: IncidentSeverity[] = [
   "MINOR",

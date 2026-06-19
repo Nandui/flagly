@@ -2,19 +2,30 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileWarning } from "lucide-react"
+import { Building2, FileWarning } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { MODULE_NAV } from "@/lib/centrely/modules"
+import { MODULE_NAV, type NavItem } from "@/lib/centrely/modules"
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/flagly") return pathname === "/flagly"
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function FlaglySidebar({ onNavigate }: { onNavigate?: () => void }) {
+const ADMIN_NAV: NavItem[] = [
+  { href: "/flagly/centres", label: "Centres", icon: Building2, cap: "admin" },
+]
+
+export function FlaglySidebar({
+  onNavigate,
+  role,
+}: {
+  onNavigate?: () => void
+  role?: string
+}) {
   const pathname = usePathname()
   const nav = MODULE_NAV.flagly
+  const isAdmin = role === "Admin"
 
   return (
     <div className="flex h-full flex-col">
@@ -49,6 +60,34 @@ export function FlaglySidebar({ onNavigate }: { onNavigate?: () => void }) {
             </Link>
           )
         })}
+
+        {isAdmin ? (
+          <>
+            <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Admin
+            </p>
+            {ADMIN_NAV.map((item) => {
+              const active = isActive(pathname, item.href)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  )}
+                >
+                  <Icon className="size-4.5 shrink-0" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </>
+        ) : null}
       </nav>
 
       <div className="border-t p-3">

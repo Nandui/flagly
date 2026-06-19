@@ -28,13 +28,13 @@ export function FlaglyShell({
     <div className="min-h-screen lg:grid lg:grid-cols-[16rem_1fr]">
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen border-r bg-card lg:block">
-        <FlaglySidebar />
+        <FlaglySidebar role={user.role} />
       </aside>
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-64 p-0">
-          <FlaglySidebar onNavigate={() => setMobileOpen(false)} />
+          <FlaglySidebar role={user.role} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 

@@ -85,6 +85,7 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 | `/flagly/incidents/[id]/edit` | Edit core incident fields |
 | `/flagly/riddor` | RIDDOR / HSA tracker with deadline countdowns |
 | `/flagly/actions` | Cross-incident follow-up actions |
+| `/flagly/centres` | Manage centres — add / edit / site code (Admin only) |
 
 ## Architecture
 

@@ -8,6 +8,27 @@ export const firstAdminSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters").max(200),
 })
 
+// ─── Centre management (admin) ───────────────────────────────────────────────
+
+const siteCodeField = z
+  .string()
+  .trim()
+  .max(4)
+  .optional()
+  .transform((v) => (v ? v.toUpperCase() : undefined))
+  .refine((v) => !v || /^[A-Z]{2,4}$/.test(v), "Site code must be 2–4 letters")
+
+export const createCenterSchema = z.object({
+  name: z.string().min(1, "Enter a centre name").max(200),
+  siteCode: siteCodeField,
+  region: z.enum(["IRELAND", "NORTHERN_IRELAND", "GREAT_BRITAIN"]),
+  address: z.string().max(300).optional(),
+})
+
+export const updateCenterSchema = createCenterSchema.extend({
+  id: z.string().cuid(),
+})
+
 // ─── Shared item schemas (used both nested-at-create and standalone-add) ─────────
 
 const witnessBase = z.object({
