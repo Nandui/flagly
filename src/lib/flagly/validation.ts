@@ -1,5 +1,13 @@
 import { z } from "zod"
 
+// ─── First-run admin setup ───────────────────────────────────────────────────
+
+export const firstAdminSchema = z.object({
+  name: z.string().min(1, "Enter your name").max(200),
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(200),
+})
+
 // ─── Shared item schemas (used both nested-at-create and standalone-add) ─────────
 
 const witnessBase = z.object({

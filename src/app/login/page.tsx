@@ -1,15 +1,16 @@
-"use client"
+import type { Metadata } from "next"
+import { FileWarning } from "lucide-react"
 
-import { useActionState } from "react"
-import { FileWarning, Loader2 } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { LoginForm } from "./login-form"
+import { FirstRunSetup } from "./first-run-setup"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { authenticate } from "./actions"
+export const metadata: Metadata = { title: "Sign in" }
+export const dynamic = "force-dynamic"
 
-export default function LoginPage() {
-  const [error, formAction, pending] = useActionState(authenticate, undefined)
+export default async function LoginPage() {
+  // With no users yet, show the one-time "create the first admin" setup.
+  const hasUsers = (await prisma.user.count()) > 0
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
@@ -19,52 +20,25 @@ export default function LoginPage() {
             <FileWarning className="size-6" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-semibold">Flagly</h1>
+            <h1 className="font-display text-2xl font-semibold">
+              {hasUsers ? "Sign in to Flagly" : "Welcome to Flagly"}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Incident reporting · Centrely suite
+              {hasUsers
+                ? "Incident reporting · Centrely suite"
+                : "Create the first administrator account to get started."}
             </p>
           </div>
         </div>
 
         <div className="rounded-xl border bg-card p-6 shadow-sm">
-          <form action={formAction} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@centre.ie"
-                defaultValue="manager@leisureworld.ie"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                defaultValue="password123"
-                required
-              />
-            </div>
-
-            {error ? (
-              <p className="text-sm font-medium text-destructive">{error}</p>
-            ) : null}
-
-            <Button type="submit" disabled={pending} className="mt-1 w-full">
-              {pending ? <Loader2 className="animate-spin" /> : null}
-              Sign in
-            </Button>
-          </form>
+          {hasUsers ? <LoginForm /> : <FirstRunSetup />}
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Demo login · manager@leisureworld.ie / password123
+          {hasUsers
+            ? "Access is restricted to authorised staff."
+            : "You can add the rest of your team once you're signed in."}
         </p>
       </div>
     </div>

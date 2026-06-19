@@ -29,19 +29,26 @@ comfortably one-handed at 375px.
 npm install
 
 # 2. Configure the database (copy and edit)
-cp .env.example .env          # set DATABASE_URL (PostgreSQL)
+cp .env.example .env          # set DATABASE_URL, DATABASE_URL_UNPOOLED, AUTH_SECRET
 
 # 3. Create the schema + generate the client
 npm run db:migrate
 
-# 4. Seed realistic demo data
+# 4. (Optional) seed realistic demo data
 npm run db:seed
 
 # 5. Run
 npm run dev                   # http://localhost:3000
 ```
 
-### Demo login
+### First login
+
+On a fresh database (no users), the sign-in page shows a one-time **"Create the
+first administrator"** form. Enter your name, email and password to create the
+initial Admin account — a starter centre is created automatically so you can
+report incidents straight away. After that it's a normal sign-in page.
+
+### Demo login (after `npm run db:seed`)
 
 ```
 Email:    manager@leisureworld.ie
@@ -52,6 +59,8 @@ The seed creates two centres (LeisureWorld Cork `LW`, LeisureWorld Dublin `LD`),
 one Admin user, and eight incidents across the last six months — including a
 REPORTABLE staff injury with a pending HSA flag approaching its deadline, so the
 dashboard is populated from first load.
+
+Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 
 ## Scripts
 
