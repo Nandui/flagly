@@ -135,10 +135,48 @@ export type ReporterRank = {
 
 export type AssigneeRank = { name: string; open: number; overdue: number }
 
+// Change vs the previous comparable period (null when there is no prior period,
+// e.g. all-time). Positive = more than last period.
+export type StatDeltas = {
+  incidents: number | null
+  reportable: number | null
+  injured: number | null
+}
+
+// ─── Needs-attention (dashboard triage zone) ─────────────────────────────────────
+
+export type AttentionAction = {
+  incidentId: string
+  reference: string
+  description: string
+  assignedTo: string
+  dueDate: Date
+  daysOverdue: number
+}
+
+export type AttentionIncident = {
+  id: string
+  reference: string
+  severity: IncidentSeverity
+  location: string
+  occurredAt: Date
+  openActions: number
+}
+
+export type DashboardAttention = {
+  overdueActions: AttentionAction[]
+  overdueActionsTotal: number
+  reportableOpen: AttentionIncident[]
+  reportableOpenTotal: number
+}
+
 export type DashboardData = {
   timeframe: Timeframe
+  generatedAt: Date
   stats: DashboardStats
+  deltas: StatDeltas
   sparks: DashboardSparks
+  attention: DashboardAttention
   activity: ActivityPoint[]
   locations: DistributionItem[]
   types: TypeDistributionItem[]

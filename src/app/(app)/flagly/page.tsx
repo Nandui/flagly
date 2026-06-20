@@ -15,12 +15,14 @@ import { getDashboardData } from "@/lib/flagly/data/dashboard"
 import {
   INCIDENT_TYPE_LABELS,
   TIMEFRAME_LABELS,
+  formatTime,
   parseTimeframe,
   pluralize,
 } from "@/lib/flagly/utils"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
 import { EmptyState } from "@/components/flagly/shared/EmptyState"
 import { DashboardFilters } from "@/components/flagly/dashboard/DashboardFilters"
+import { AttentionPanel } from "@/components/flagly/dashboard/AttentionPanel"
 import { MetricCard } from "@/components/flagly/shared/MetricCard"
 import { ActivityChart } from "@/components/flagly/dashboard/ActivityChart"
 import { DistributionPanel } from "@/components/flagly/dashboard/DistributionPanel"
@@ -55,14 +57,23 @@ export default async function DashboardPage({
   const period = TIMEFRAME_LABELS[timeframe].toLowerCase()
 
   const data = await getDashboardData(activeCenter.id, { timeframe, type: typeFilter })
-  const { stats, sparks } = data
+  const { stats, sparks, deltas } = data
+
+  // KPI deltas: for incident counts, fewer than last period is good.
+  const downIsGood = (v: number | null) =>
+    v === null ? null : { value: v, goodWhen: "down" as const }
 
   return (
     <div className="space-y-5">
       <PageHeader
         title="Dashboard"
         description={`Incident overview · ${activeCenter.name}`}
-      />
+      >
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="size-3.5" />
+          Updated {formatTime(data.generatedAt)}
+        </p>
+      </PageHeader>
 
       <DashboardFilters
         centers={centers}
@@ -70,6 +81,9 @@ export default async function DashboardPage({
         timeframe={timeframe}
         type={typeFilter}
       />
+
+      {/* Needs-attention triage zone */}
+      <AttentionPanel attention={data.attention} />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -79,6 +93,7 @@ export default async function DashboardPage({
           sub={period}
           icon={FileWarning}
           spark={sparks.incidents}
+          delta={downIsGood(deltas.incidents)}
           href="/flagly/incidents"
         />
         <MetricCard
@@ -103,6 +118,7 @@ export default async function DashboardPage({
           icon={ShieldAlert}
           tone="warning"
           spark={sparks.reportable}
+          delta={downIsGood(deltas.reportable)}
         />
         <MetricCard
           label="Injured parties"
@@ -110,6 +126,7 @@ export default async function DashboardPage({
           sub={period}
           icon={UserRound}
           spark={sparks.injured}
+          delta={downIsGood(deltas.injured)}
         />
       </div>
 

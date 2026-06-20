@@ -24,6 +24,26 @@ export function ActivityChart({ data }: { data: ActivityPoint[] }) {
       }
       contentClassName="p-5 pt-3"
     >
+        {/* Accessible alternative: the SVG chart is decorative; this table carries
+            the data for screen readers. */}
+        <table className="sr-only">
+          <caption>Incidents per month over the last 12 months</caption>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Incidents</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((d, i) => (
+              <tr key={i}>
+                <th scope="row">{d.month}</th>
+                <td>{d.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div aria-hidden="true">
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 8, right: 4, left: -18, bottom: 0 }} barCategoryGap="28%">
             <defs>
@@ -66,6 +86,7 @@ export function ActivityChart({ data }: { data: ActivityPoint[] }) {
             <Bar dataKey="count" fill="url(#activityBar)" radius={[6, 6, 0, 0]} maxBarSize={26} />
           </BarChart>
         </ResponsiveContainer>
+        </div>
     </Panel>
   )
 }

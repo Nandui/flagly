@@ -12,6 +12,7 @@ export function MetricCard({
   tone = "default",
   spark,
   href,
+  delta,
 }: {
   label: string
   value: React.ReactNode
@@ -20,6 +21,9 @@ export function MetricCard({
   tone?: "default" | "danger" | "warning" | "success"
   spark?: number[]
   href?: string
+  // Change vs the previous comparable period. `goodWhen` colours the direction
+  // (e.g. for incident counts, "down" is good). null/omitted = no comparison.
+  delta?: { value: number; goodWhen?: "up" | "down" } | null
 }) {
   const toneText: Record<string, string> = {
     default: "text-foreground",
@@ -33,6 +37,19 @@ export function MetricCard({
     warning: "var(--severity-significant)",
     success: "var(--severity-minor)",
   }
+
+  const hasDelta = !!delta && delta.value !== 0
+  const direction = delta && delta.value > 0 ? "up" : "down"
+  const deltaGood = delta?.goodWhen ? direction === delta.goodWhen : null
+  const deltaColor =
+    deltaGood === true
+      ? "text-severity-minor"
+      : deltaGood === false
+        ? "text-severity-critical"
+        : "text-muted-foreground"
+  const deltaTitle = delta
+    ? `${Math.abs(delta.value)} ${direction === "up" ? "more" : "fewer"} than the previous period`
+    : undefined
 
   const body = (
     <div
@@ -48,7 +65,20 @@ export function MetricCard({
       <p className={cn("font-display text-3xl font-semibold tabular-nums leading-none", toneText[tone])}>
         {value}
       </p>
-      {sub ? <p className="text-xs text-muted-foreground">{sub}</p> : null}
+      {hasDelta || sub ? (
+        <p className="flex items-center gap-1.5 text-xs">
+          {hasDelta ? (
+            <span
+              className={cn("inline-flex items-center gap-0.5 font-medium tabular-nums", deltaColor)}
+              title={deltaTitle}
+            >
+              <span aria-hidden>{direction === "up" ? "▲" : "▼"}</span>
+              {Math.abs(delta!.value)}
+            </span>
+          ) : null}
+          {sub ? <span className="text-muted-foreground">{sub}</span> : null}
+        </p>
+      ) : null}
       {spark && spark.length > 1 ? (
         <div className="mt-auto pt-1">
           <Sparkline data={spark} stroke={sparkColor[tone]} />

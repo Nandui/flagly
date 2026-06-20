@@ -1,4 +1,5 @@
 import {
+  differenceInCalendarDays,
   endOfMonth,
   endOfYear,
   format,
@@ -9,16 +10,18 @@ import {
   subMonths,
   subYears,
 } from "date-fns"
-import type { IncidentType, Prisma } from "@prisma/client"
+import type { IncidentSeverity, IncidentType, Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { sweepOverdueActions } from "@/lib/flagly/data/incidents"
 import type {
   ActivityPoint,
   AssigneeRank,
+  DashboardAttention,
   DashboardData,
   DistributionItem,
   ReporterRank,
+  StatDeltas,
   Timeframe,
   TypeDistributionItem,
 } from "@/lib/flagly/types"
@@ -81,6 +84,13 @@ export async function getDashboardData(
 
   const twelveMoStart = startOfMonth(subMonths(now, 11))
 
+  const reportableOpenWhere: Prisma.IncidentWhereInput = {
+    centerId,
+    ...typeWhere,
+    status: { in: ["OPEN", "UNDER_INVESTIGATION"] },
+    severity: { in: ["REPORTABLE", "CRITICAL"] },
+  }
+
   const [
     periodIncidents,
     twelveMoIncidents,
@@ -88,6 +98,10 @@ export async function getDashboardData(
     overdueActions,
     prevReporters,
     actionRows,
+    prevPeriodIncidents,
+    overdueActionRecords,
+    reportableOpenRecords,
+    reportableOpenTotal,
   ] = await Promise.all([
     prisma.incident.findMany({
       where: {
@@ -129,6 +143,43 @@ export async function getDashboardData(
       },
       select: { assignedTo: true, status: true },
     }),
+    // Previous comparable period — for KPI deltas.
+    win.prevStart
+      ? prisma.incident.findMany({
+          where: {
+            ...incidentScope,
+            occurredAt: { gte: win.prevStart, lte: win.prevEnd ?? now },
+          },
+          select: { severity: true, injuredCount: true },
+        })
+      : Promise.resolve([] as { severity: IncidentSeverity; injuredCount: number }[]),
+    // Attention zone — the soonest-overdue actions.
+    prisma.followUpAction.findMany({
+      where: { status: "OVERDUE", incident: { centerId, ...typeWhere } },
+      orderBy: { dueDate: "asc" },
+      take: 5,
+      select: {
+        description: true,
+        assignedTo: true,
+        dueDate: true,
+        incident: { select: { id: true, reference: true } },
+      },
+    }),
+    // Attention zone — open reportable/critical incidents.
+    prisma.incident.findMany({
+      where: reportableOpenWhere,
+      orderBy: [{ severity: "desc" }, { occurredAt: "desc" }],
+      take: 5,
+      select: {
+        id: true,
+        reference: true,
+        severity: true,
+        location: true,
+        occurredAt: true,
+        followUpActions: { where: { status: { not: "COMPLETE" } }, select: { id: true } },
+      },
+    }),
+    prisma.incident.count({ where: reportableOpenWhere }),
   ])
 
   // ── Stats ──
@@ -138,6 +189,40 @@ export async function getDashboardData(
     overdueActions,
     reportable: periodIncidents.filter((i) => isReportable(i.severity)).length,
     injured: periodIncidents.reduce((sum, i) => sum + i.injuredCount, 0),
+  }
+
+  // ── Deltas vs previous comparable period ──
+  const deltas: StatDeltas = win.prevStart
+    ? {
+        incidents: stats.incidents - prevPeriodIncidents.length,
+        reportable:
+          stats.reportable -
+          prevPeriodIncidents.filter((i) => isReportable(i.severity)).length,
+        injured:
+          stats.injured - prevPeriodIncidents.reduce((s, i) => s + i.injuredCount, 0),
+      }
+    : { incidents: null, reportable: null, injured: null }
+
+  // ── Needs-attention zone ──
+  const attention: DashboardAttention = {
+    overdueActions: overdueActionRecords.map((a) => ({
+      incidentId: a.incident.id,
+      reference: a.incident.reference,
+      description: a.description,
+      assignedTo: a.assignedTo,
+      dueDate: a.dueDate,
+      daysOverdue: Math.max(0, differenceInCalendarDays(now, a.dueDate)),
+    })),
+    overdueActionsTotal: overdueActions,
+    reportableOpen: reportableOpenRecords.map((i) => ({
+      id: i.id,
+      reference: i.reference,
+      severity: i.severity,
+      location: i.location,
+      occurredAt: i.occurredAt,
+      openActions: i.followUpActions.length,
+    })),
+    reportableOpenTotal,
   }
 
   // ── 12-month activity + 6-month sparklines ──
@@ -200,8 +285,11 @@ export async function getDashboardData(
 
   return {
     timeframe,
+    generatedAt: now,
     stats,
+    deltas,
     sparks,
+    attention,
     activity,
     locations,
     types,
