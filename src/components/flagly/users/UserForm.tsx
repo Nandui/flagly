@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -28,8 +29,6 @@ import { createUser, updateUser } from "@/lib/flagly/actions/users"
 import type { UserRow } from "@/lib/flagly/types"
 import type { CenterSummary } from "@/lib/centrely/active-center"
 
-const NO_CENTER = "__none__"
-
 export function UserForm({
   open,
   onOpenChange,
@@ -47,7 +46,7 @@ export function UserForm({
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [role, setRole] = React.useState<string>(DEFAULT_ROLE)
-  const [centerId, setCenterId] = React.useState(NO_CENTER)
+  const [centerIds, setCenterIds] = React.useState<string[]>([])
   const [password, setPassword] = React.useState("")
 
   React.useEffect(() => {
@@ -55,9 +54,15 @@ export function UserForm({
     setName(record?.name ?? "")
     setEmail(record?.email ?? "")
     setRole(record?.role ?? DEFAULT_ROLE)
-    setCenterId(record?.centerId ?? NO_CENTER)
+    setCenterIds(record?.centers.map((c) => c.id) ?? [])
     setPassword("")
   }, [open, record])
+
+  function toggleCenter(id: string) {
+    setCenterIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    )
+  }
 
   function submit() {
     startTransition(async () => {
@@ -65,7 +70,7 @@ export function UserForm({
         name: name.trim(),
         email: email.trim(),
         role,
-        centerId: centerId === NO_CENTER ? undefined : centerId,
+        centerIds,
       }
       const result = record
         ? await updateUser({
@@ -123,21 +128,35 @@ export function UserForm({
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Centre">
-            <Select value={centerId} onValueChange={setCenterId}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_CENTER}>No centre</SelectItem>
+          <Field
+            label="Centres"
+            hint="Select one or more. Leave all unticked if the user isn't tied to a centre."
+          >
+            {centers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No centres yet.</p>
+            ) : (
+              <div className="flex flex-col gap-1 rounded-[var(--radius)] border p-1">
                 {centers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.siteCode ? ` (${c.siteCode})` : ""}
-                  </SelectItem>
+                  <label
+                    key={c.id}
+                    htmlFor={`u-center-${c.id}`}
+                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      id={`u-center-${c.id}`}
+                      checked={centerIds.includes(c.id)}
+                      onCheckedChange={() => toggleCenter(c.id)}
+                    />
+                    <span className="text-sm">
+                      {c.name}
+                      {c.siteCode ? (
+                        <span className="text-muted-foreground"> ({c.siteCode})</span>
+                      ) : null}
+                    </span>
+                  </label>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
           </Field>
           <Field
             label={record ? "New password" : "Password"}

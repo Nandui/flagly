@@ -8,7 +8,6 @@ export type SessionUser = {
   name: string
   email: string
   role: string
-  centerId: string | null
 }
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
@@ -19,7 +18,6 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     name: session.user.name ?? "Unknown",
     email: session.user.email ?? "",
     role: session.user.role ?? DEFAULT_ROLE,
-    centerId: session.user.centerId ?? null,
   }
 }
 

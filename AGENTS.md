@@ -63,6 +63,11 @@ Read this before changing code.
   `data/users.ts` + `actions/users.ts`); passwords are bcrypt-hashed via
   `lib/password.ts`. Guards stop an admin deleting their own account or
   removing/demoting the last remaining Operations Manager.
+- **User ↔ centre is many-to-many** (`User.centers`). It is **recorded, not
+  access-restricting**: the centre switcher still lists every centre; membership
+  only sets a user's default landing centre (`getActiveCenter`). There is no
+  `User.centerId` and no `centerId` on the session — resolve membership from the
+  DB when needed.
 
 ## Design system
 

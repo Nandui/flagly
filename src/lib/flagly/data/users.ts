@@ -4,15 +4,16 @@ import type { UserOption, UserRow } from "@/lib/flagly/types"
 export async function getUsers(): Promise<UserRow[]> {
   const users = await prisma.user.findMany({
     orderBy: { name: "asc" },
-    include: { center: { select: { name: true } } },
+    include: {
+      centers: { select: { id: true, name: true }, orderBy: { name: "asc" } },
+    },
   })
   return users.map((u) => ({
     id: u.id,
     name: u.name,
     email: u.email,
     role: u.role,
-    centerId: u.centerId,
-    centerName: u.center?.name ?? null,
+    centers: u.centers,
     createdAt: u.createdAt,
   }))
 }

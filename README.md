@@ -88,7 +88,7 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 | `/flagly/actions` | Cross-incident follow-up actions |
 | `/flagly/centres` | Manage centres — add / edit / site code (Operations Manager only) |
 | `/flagly/areas` | Manage per-centre areas & sub-areas (Operations Manager only) |
-| `/flagly/users` | Manage users — name / email / role / centre / password (Operations Manager only) |
+| `/flagly/users` | Manage users — name / email / role / centres / password (Operations Manager only) |
 
 ## Architecture
 

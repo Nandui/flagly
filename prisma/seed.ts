@@ -107,14 +107,14 @@ async function main() {
   console.log("Creating demo users…")
   const passwordHash = await bcrypt.hash("password123", 10)
 
-  // Operations Manager (the admin) — Fernando's account.
+  // Operations Manager (the admin) — Fernando's account, across both centres.
   await prisma.user.create({
     data: {
       name: "Fernando Serina",
       email: "fernandoserina@leisureworldcork.com",
       passwordHash,
       role: "Operations Manager",
-      centerId: cork.id,
+      centers: { connect: [{ id: cork.id }, { id: dublin.id }] },
     },
   })
 
@@ -125,26 +125,26 @@ async function main() {
       email: "manager@leisureworld.ie",
       passwordHash,
       role: "Duty Manager",
-      centerId: cork.id,
+      centers: { connect: { id: cork.id } },
     },
   })
-  await prisma.user.createMany({
-    data: [
-      {
-        name: "John Fitzgerald",
-        email: "john.fitzgerald@leisureworld.ie",
-        passwordHash,
-        role: "Duty Manager",
-        centerId: cork.id,
-      },
-      {
-        name: "Mark Doyle",
-        email: "mark.doyle@leisureworld.ie",
-        passwordHash,
-        role: "Shift Supervisor",
-        centerId: cork.id,
-      },
-    ],
+  await prisma.user.create({
+    data: {
+      name: "John Fitzgerald",
+      email: "john.fitzgerald@leisureworld.ie",
+      passwordHash,
+      role: "Duty Manager",
+      centers: { connect: { id: cork.id } },
+    },
+  })
+  await prisma.user.create({
+    data: {
+      name: "Mark Doyle",
+      email: "mark.doyle@leisureworld.ie",
+      passwordHash,
+      role: "Shift Supervisor",
+      centers: { connect: { id: cork.id } },
+    },
   })
 
   const reporter = sarah.name

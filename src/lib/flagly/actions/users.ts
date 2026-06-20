@@ -38,7 +38,7 @@ export async function createUser(raw: unknown): Promise<ActionResult<{ id: strin
         name: d.name,
         email,
         role: d.role,
-        centerId: d.centerId ?? null,
+        centers: { connect: d.centerIds.map((id) => ({ id })) },
         passwordHash: await hashPassword(d.password),
       },
       select: { id: true },
@@ -86,7 +86,7 @@ export async function updateUser(raw: unknown): Promise<ActionResult<{ id: strin
         name: d.name,
         email,
         role: d.role,
-        centerId: d.centerId ?? null,
+        centers: { set: d.centerIds.map((id) => ({ id })) },
         ...(d.password ? { passwordHash: await hashPassword(d.password) } : {}),
       },
     })

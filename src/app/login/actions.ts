@@ -70,7 +70,7 @@ export async function createFirstAdmin(
       name: parsed.data.name,
       email,
       role: PRIMARY_ADMIN_ROLE,
-      centerId: center.id,
+      centers: { connect: { id: center.id } },
       passwordHash: await hashPassword(parsed.data.password),
     },
   })

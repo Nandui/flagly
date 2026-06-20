@@ -45,12 +45,10 @@ model User {
   email        String   @unique
   passwordHash String?
   role         String   @default("Duty Manager") // Operations Manager | CEO | Duty Manager | Shift Supervisor | Department Supervisor
-  centerId     String?
-  center       Center?  @relation(fields: [centerId], references: [id])
+  // A user belongs to one or more centres (many-to-many).
+  centers      Center[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  @@index([centerId])
 }
 
 // ─── FLAGLY ──────────────────────────────────────────────────────────────────

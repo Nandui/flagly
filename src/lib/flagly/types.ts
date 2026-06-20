@@ -77,8 +77,7 @@ export type UserRow = {
   name: string
   email: string
   role: string
-  centerId: string | null
-  centerName: string | null
+  centers: { id: string; name: string }[]
   createdAt: Date
 }
 

@@ -40,7 +40,8 @@ export const createUserSchema = z.object({
   email: z.string().trim().email("Enter a valid email address").max(200),
   password: z.string().min(8, "Password must be at least 8 characters").max(200),
   role: roleField,
-  centerId: z.string().cuid().optional(),
+  // Centres the user belongs to (zero or more).
+  centerIds: z.array(z.string().cuid()).default([]),
 })
 
 export const updateUserSchema = z.object({
@@ -48,7 +49,7 @@ export const updateUserSchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(200),
   email: z.string().trim().email("Enter a valid email address").max(200),
   role: roleField,
-  centerId: z.string().cuid().optional(),
+  centerIds: z.array(z.string().cuid()).default([]),
   // Optional password reset — blank means "leave unchanged".
   password: z
     .string()

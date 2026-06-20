@@ -92,7 +92,7 @@ export function UsersManager({
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Centre</TableHead>
+                <TableHead>Centres</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -112,7 +112,9 @@ export function UsersManager({
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {user.centerName ?? "—"}
+                      {user.centers.length > 0
+                        ? user.centers.map((c) => c.name).join(", ")
+                        : "—"}
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
