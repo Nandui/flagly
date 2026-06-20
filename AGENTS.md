@@ -106,11 +106,11 @@ Riskly's token or pattern rather than inventing one.
   hardcode hex.
 - The app is an **analytics-dashboard** layout: a cool-slate canvas (`bg-canvas`, set
   on `SidebarInset`) with white cards floating on it.
-- **Note on libraries:** Riskly loads Radix via individual `@radix-ui/react-*`
-  packages and Flagly via the unified `radix-ui` package (the current shadcn
-  convention) — this is an intentional, invisible implementation difference; the
-  shared design layer (Tailwind v4 tokens, shadcn new-york/slate, recharts, motion,
-  sonner, lucide) is identical.
+- **Libraries match Riskly:** Radix is loaded via the individual
+  `@radix-ui/react-*` packages (not the unified `radix-ui` meta-package), and
+  `@vercel/analytics` + `@vercel/speed-insights` are wired in `layout.tsx` — same
+  as Riskly. The rest of the shared design layer (Tailwind v4 tokens, shadcn
+  new-york/slate, recharts, motion, sonner, lucide) is identical too.
 
 ### House style — build every screen this way
 
@@ -150,12 +150,15 @@ Riskly's token or pattern rather than inventing one.
 ## shadcn/ui
 
 This project uses **shadcn/ui** as its component library (config in
-`components.json`, style `new-york`, base colour `neutral`, CSS variables on,
+`components.json`, style `new-york`, base colour `slate`, CSS variables on,
 icon library `lucide`). The primitives in `src/components/ui/*` are the canonical
 registry components and own their source — edit them in place.
 
-- They import Radix from the **unified `radix-ui` package** (the current registry
-  convention), not the individual `@radix-ui/react-*` packages.
+- They import Radix from the **individual `@radix-ui/react-*` packages**
+  (`import * as XPrimitive from "@radix-ui/react-x"`, using the namespaced `.Root`
+  members), to match Riskly — not the unified `radix-ui` meta-package. If you add a
+  registry component that imports from `"radix-ui"`, rewrite it to the matching
+  individual package and add that dep.
 - The **full new-york-v4 registry is vendored** in `src/components/ui/*` (plus the
   `use-mobile` hook in `src/hooks/`), so components are available offline — most
   are unused until imported. The app shell uses the **official shadcn `Sidebar`**
