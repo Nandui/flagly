@@ -70,6 +70,21 @@ export type AreaOption = {
   subAreas: { id: string; name: string }[]
 }
 
+// ─── Users (admin) ───────────────────────────────────────────────────────────────
+
+export type UserRow = {
+  id: string
+  name: string
+  email: string
+  role: string
+  centerId: string | null
+  centerName: string | null
+  createdAt: Date
+}
+
+// Lightweight reporter options for the incident form (admins only).
+export type UserOption = { id: string; name: string }
+
 // ─── Cross-incident follow-up action row ─────────────────────────────────────────
 
 export type ActionListItem = {

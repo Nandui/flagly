@@ -48,6 +48,15 @@ Read this before changing code.
   on the dashboard active list. `OPEN` and above do.
 - `ActionStatus.OVERDUE` is stored in the DB and refreshed on read by
   `sweepOverdueActions` in `data/incidents.ts`.
+- **Reporter attribution:** an incident is attributed to the signed-in user
+  (`reportedBy` name + `reportedById` link). Only **admins** may attribute a
+  report to a different user — enforced server-side in `actions/incidents.ts`
+  (`resolveReporter`), not just in the form. `reportedById` is a loose link (no
+  FK), so deleting a user keeps the recorded `reportedBy` name.
+- **Users** are managed under **Admin → Users** (`/flagly/users`,
+  `data/users.ts` + `actions/users.ts`). Roles are the strings in
+  `USER_ROLES`; passwords are bcrypt-hashed via `lib/password.ts`. Guards stop an
+  admin deleting their own account or removing/demoting the last remaining admin.
 
 ## Design system
 

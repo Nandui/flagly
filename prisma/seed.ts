@@ -104,9 +104,9 @@ async function main() {
     { name: "Reception", subs: [] },
   ])
 
-  console.log("Creating demo user…")
+  console.log("Creating demo users…")
   const passwordHash = await bcrypt.hash("password123", 10)
-  await prisma.user.create({
+  const admin = await prisma.user.create({
     data: {
       name: "Sarah Brennan",
       email: "manager@leisureworld.ie",
@@ -115,8 +115,26 @@ async function main() {
       centerId: cork.id,
     },
   })
+  await prisma.user.createMany({
+    data: [
+      {
+        name: "John Fitzgerald",
+        email: "john.fitzgerald@leisureworld.ie",
+        passwordHash,
+        role: "Reviewer",
+        centerId: cork.id,
+      },
+      {
+        name: "Mark Doyle",
+        email: "mark.doyle@leisureworld.ie",
+        passwordHash,
+        role: "Contributor",
+        centerId: cork.id,
+      },
+    ],
+  })
 
-  const reporter = "Sarah Brennan"
+  const reporter = admin.name
   let seq = 0
   const ref = () => `INC-LW-${String(++seq).padStart(4, "0")}`
 
@@ -434,7 +452,11 @@ async function main() {
     },
   })
 
-  console.log(`Seed complete: 2 centres, 1 user, ${seq} incidents at ${cork.name}.`)
+  // All seeded incidents are reported by the admin — link them to that user so
+  // the reporter shows as a real account (and the edit form preselects it).
+  await prisma.incident.updateMany({ data: { reportedById: admin.id } })
+
+  console.log(`Seed complete: 2 centres, 3 users, ${seq} incidents at ${cork.name}.`)
 }
 
 main()

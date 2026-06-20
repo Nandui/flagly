@@ -46,7 +46,7 @@ import {
 } from "@/lib/flagly/utils"
 import { createIncident, updateIncident } from "@/lib/flagly/actions/incidents"
 import type { CenterSummary } from "@/lib/centrely/active-center"
-import type { AreaOption } from "@/lib/flagly/types"
+import type { AreaOption, UserOption } from "@/lib/flagly/types"
 
 type InjuredRow = {
   key: string
@@ -89,7 +89,8 @@ export type IncidentFormInitial = {
   subAreaId: string | null
   description: string
   immediateAction: string | null
-  reportedBy: string
+  reportedById: string | null
+  reportedByName: string
 }
 
 function uid() {
@@ -129,15 +130,19 @@ export function IncidentForm({
   mode,
   centers,
   areas,
+  users,
+  currentUser,
+  isAdmin,
   defaultCenterId,
-  defaultReportedBy,
   initial,
 }: {
   mode: "create" | "edit"
   centers: CenterSummary[]
   areas: AreaOption[]
+  users: UserOption[]
+  currentUser: { id: string; name: string }
+  isAdmin: boolean
   defaultCenterId: string | null
-  defaultReportedBy: string
   initial?: IncidentFormInitial
 }) {
   const router = useRouter()
@@ -165,9 +170,12 @@ export function IncidentForm({
   const [immediateAction, setImmediateAction] = React.useState(
     initial?.immediateAction ?? ""
   )
-  const [reportedBy, setReportedBy] = React.useState(
-    initial?.reportedBy ?? defaultReportedBy
+  // Create defaults to the signed-in user; on edit we preselect the linked user
+  // (may be blank for legacy reports — then the recorded name is shown instead).
+  const [reportedById, setReportedById] = React.useState(
+    initial ? (initial.reportedById ?? "") : currentUser.id
   )
+  const reportedByName = initial?.reportedByName ?? currentUser.name
 
   const [injured, setInjured] = React.useState<InjuredRow[]>([])
   const [witnesses, setWitnesses] = React.useState<WitnessRow[]>([])
@@ -218,7 +226,7 @@ export function IncidentForm({
       subAreaId: subAreaId || undefined,
       description,
       immediateAction: immediateAction.trim() || undefined,
-      reportedBy: reportedBy.trim(),
+      reportedById: reportedById || undefined,
     }
   }
 
@@ -974,13 +982,36 @@ export function IncidentForm({
 
       {/* Section 5 — Reported By */}
       <Section number={5} title="Reported by">
-        <Field label="Your name" htmlFor="reportedBy" required>
-          <Input
-            id="reportedBy"
-            value={reportedBy}
-            onChange={(e) => setReportedBy(e.target.value)}
-          />
-        </Field>
+        {isAdmin ? (
+          <Field
+            label="Reporter"
+            htmlFor="reportedBy"
+            required
+            hint={
+              initial && !initial.reportedById
+                ? `Currently recorded as “${reportedByName}”. Choose a user to attribute this report.`
+                : "Defaults to you. As an admin you can attribute this report to another user."
+            }
+          >
+            <Select value={reportedById} onValueChange={setReportedById}>
+              <SelectTrigger id="reportedBy">
+                <SelectValue placeholder="Select reporter" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.name}
+                    {u.id === currentUser.id ? " (you)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        ) : (
+          <Field label="Reporter" hint="Reports are filed under your name.">
+            <Input value={reportedByName} disabled />
+          </Field>
+        )}
       </Section>
 
       {/* Action bar */}

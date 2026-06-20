@@ -29,6 +29,39 @@ export const updateCenterSchema = createCenterSchema.extend({
   id: z.string().cuid(),
 })
 
+// ─── User management (admin) ─────────────────────────────────────────────────
+
+const roleField = z.enum([
+  "Viewer",
+  "Contributor",
+  "Reviewer",
+  "Assessor",
+  "Admin",
+])
+
+export const createUserSchema = z.object({
+  name: z.string().trim().min(1, "Enter a name").max(200),
+  email: z.string().trim().email("Enter a valid email address").max(200),
+  password: z.string().min(8, "Password must be at least 8 characters").max(200),
+  role: roleField,
+  centerId: z.string().cuid().optional(),
+})
+
+export const updateUserSchema = z.object({
+  id: z.string().cuid(),
+  name: z.string().trim().min(1, "Enter a name").max(200),
+  email: z.string().trim().email("Enter a valid email address").max(200),
+  role: roleField,
+  centerId: z.string().cuid().optional(),
+  // Optional password reset — blank means "leave unchanged".
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(200)
+    .optional()
+    .or(z.literal("")),
+})
+
 // ─── Area / sub-area management (admin) ──────────────────────────────────────
 
 const areaNameField = z.string().trim().min(1, "Enter a name").max(120)
@@ -108,7 +141,8 @@ export const createIncidentSchema = z.object({
   subAreaId: z.string().cuid().optional(),
   description: z.string().min(10).max(5000),
   immediateAction: z.string().max(2000).optional(),
-  reportedBy: z.string().min(1).max(200),
+  // Who the report is attributed to. Defaults server-side to the signed-in
+  // user; only admins may set this to another user.
   reportedById: z.string().cuid().optional(),
   asDraft: z.boolean().default(false),
 })
@@ -151,7 +185,8 @@ export const updateIncidentSchema = z.object({
   subAreaId: z.string().cuid().optional(),
   description: z.string().min(10).max(5000),
   immediateAction: z.string().max(2000).optional(),
-  reportedBy: z.string().min(1).max(200),
+  // Only admins may change the reporter; blank/absent leaves it unchanged.
+  reportedById: z.string().cuid().optional(),
 })
 
 export const submitDraftSchema = z.object({

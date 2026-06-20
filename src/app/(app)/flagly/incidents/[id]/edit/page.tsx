@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getFlaglyContext } from "@/lib/flagly/context"
 import { getIncidentDetail } from "@/lib/flagly/data/incidents"
 import { getAreaOptions } from "@/lib/flagly/data/areas"
+import { getUserOptions } from "@/lib/flagly/data/users"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
 import { IncidentForm } from "@/components/flagly/incidents/IncidentForm"
 
@@ -16,7 +17,11 @@ export default async function EditIncidentPage({
 }) {
   const { id } = await params
   const { user, activeCenter, centers } = await getFlaglyContext()
-  const areas = await getAreaOptions()
+  const isAdmin = user.role === "Admin"
+  const [areas, users] = await Promise.all([
+    getAreaOptions(),
+    isAdmin ? getUserOptions() : Promise.resolve([]),
+  ])
 
   const incident = await getIncidentDetail(id)
   if (!incident) notFound()
@@ -36,8 +41,10 @@ export default async function EditIncidentPage({
         mode="edit"
         centers={centers}
         areas={areas}
+        users={users}
+        currentUser={{ id: user.id, name: user.name }}
+        isAdmin={isAdmin}
         defaultCenterId={activeCenter?.id ?? null}
-        defaultReportedBy={user.name}
         initial={{
           id: incident.id,
           centerId: incident.centerId,
@@ -48,7 +55,8 @@ export default async function EditIncidentPage({
           subAreaId: incident.subAreaId,
           description: incident.description,
           immediateAction: incident.immediateAction,
-          reportedBy: incident.reportedBy,
+          reportedById: incident.reportedById,
+          reportedByName: incident.reportedBy,
         }}
       />
     </div>

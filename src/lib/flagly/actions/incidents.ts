@@ -53,6 +53,26 @@ async function resolveLocation(
   return { ok: true, location: area.name, locationDetail: sub.name, subAreaId }
 }
 
+// Resolve who a report is attributed to. Everyone is recorded as themselves;
+// only admins may attribute a report to another user.
+async function resolveReporter(
+  current: { id: string; name: string; role: string },
+  requestedId: string | undefined
+): Promise<
+  | { ok: true; reportedBy: string; reportedById: string }
+  | { ok: false; error: string }
+> {
+  if (current.role !== "Admin" || !requestedId || requestedId === current.id) {
+    return { ok: true, reportedBy: current.name, reportedById: current.id }
+  }
+  const reporter = await prisma.user.findUnique({
+    where: { id: requestedId },
+    select: { id: true, name: true },
+  })
+  if (!reporter) return { ok: false, error: "Select a valid reporter." }
+  return { ok: true, reportedBy: reporter.name, reportedById: reporter.id }
+}
+
 export async function createIncident(
   raw: unknown
 ): Promise<ActionResult<{ id: string; status: string }>> {
@@ -72,6 +92,9 @@ export async function createIncident(
   const loc = await resolveLocation(d.centerId, d.areaId, d.subAreaId)
   if (!loc.ok) return fail(loc.error)
 
+  const reporter = await resolveReporter(user, d.reportedById)
+  if (!reporter.ok) return fail(reporter.error)
+
   for (let attempt = 0; attempt < MAX_REFERENCE_RETRIES; attempt++) {
     try {
       const incident = await prisma.$transaction(async (tx) => {
@@ -90,8 +113,8 @@ export async function createIncident(
             locationDetail: loc.locationDetail,
             description: d.description,
             immediateAction: d.immediateAction || null,
-            reportedBy: d.reportedBy,
-            reportedById: user.id,
+            reportedBy: reporter.reportedBy,
+            reportedById: reporter.reportedById,
             witnessCount: d.witnesses.length,
             injuredCount: d.injuredParties.length,
             witnesses: { create: d.witnesses.map(mapWitnessCreate) },
@@ -138,6 +161,17 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
   const loc = await resolveLocation(d.centerId, d.areaId, d.subAreaId)
   if (!loc.ok) return fail(loc.error)
 
+  // Only admins may reassign the reporter; a blank/absent value leaves it as-is.
+  let reporterUpdate: { reportedBy: string; reportedById: string } | undefined
+  if (user.role === "Admin" && d.reportedById) {
+    const reporter = await resolveReporter(user, d.reportedById)
+    if (!reporter.ok) return fail(reporter.error)
+    reporterUpdate = {
+      reportedBy: reporter.reportedBy,
+      reportedById: reporter.reportedById,
+    }
+  }
+
   try {
     await prisma.incident.update({
       where: { id: d.id },
@@ -152,7 +186,7 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
         locationDetail: loc.locationDetail,
         description: d.description,
         immediateAction: d.immediateAction || null,
-        reportedBy: d.reportedBy,
+        ...(reporterUpdate ?? {}),
       },
     })
   } catch (error) {

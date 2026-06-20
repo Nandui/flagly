@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, FileWarning, LogOut, Map } from "lucide-react"
+import { Building2, FileWarning, LogOut, Map, Users } from "lucide-react"
 
 import {
   Sidebar,
@@ -39,6 +39,7 @@ function initials(name: string): string {
 const ADMIN_NAV: NavItem[] = [
   { href: "/flagly/centres", label: "Centres", icon: Building2, cap: "admin" },
   { href: "/flagly/areas", label: "Areas", icon: Map, cap: "admin" },
+  { href: "/flagly/users", label: "Users", icon: Users, cap: "admin" },
 ]
 
 export function FlaglySidebar({
