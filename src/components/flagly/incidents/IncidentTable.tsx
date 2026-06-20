@@ -413,7 +413,8 @@ export function IncidentTable({
           </div>
 
           <Select value={centerId} onValueChange={setCenterId}>
-            <SelectTrigger className="w-[12rem]" aria-label="Filter by centre">
+            <SelectTrigger className="w-auto min-w-[12rem] gap-2" aria-label="Filter by centre">
+              <span className="text-muted-foreground">Centre:</span>
               <SelectValue placeholder="All centres" />
             </SelectTrigger>
             <SelectContent>
@@ -504,7 +505,7 @@ export function IncidentTable({
         </div>
       </div>
 
-      <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
+      <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

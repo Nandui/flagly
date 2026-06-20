@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
 
 import { getRiddorCounts, getRiddorFlags } from "@/lib/flagly/data/riddor"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
-import { StatCard } from "@/components/flagly/shared/StatCard"
+import { MetricCard } from "@/components/flagly/shared/MetricCard"
 import { EmptyState } from "@/components/flagly/shared/EmptyState"
 import { RiddorTrackerTable } from "@/components/flagly/riddor/RiddorTrackerTable"
 
@@ -23,28 +23,19 @@ export default async function RiddorTrackerPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard
-          label="Pending"
-          value={counts.pending}
-          icon={Clock}
-          tone="warning"
-        />
-        <StatCard
+        <MetricCard label="Pending" value={counts.pending} icon={Clock} tone="warning" />
+        <MetricCard
           label="Reported"
           value={counts.reported}
           icon={CheckCircle2}
           tone="success"
         />
-        <StatCard
+        <MetricCard
           label="Overdue"
           value={counts.overdue}
           icon={AlertTriangle}
           tone="danger"
-          hint={
-            counts.overdue > 0
-              ? "Past deadline — report to authority now."
-              : undefined
-          }
+          sub={counts.overdue > 0 ? "Past deadline — report now." : undefined}
         />
       </div>
 

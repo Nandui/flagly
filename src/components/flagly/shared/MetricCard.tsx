@@ -2,7 +2,7 @@ import Link from "next/link"
 import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Sparkline } from "@/components/flagly/dashboard/Sparkline"
+import { Sparkline } from "@/components/flagly/shared/Sparkline"
 
 export function MetricCard({
   label,

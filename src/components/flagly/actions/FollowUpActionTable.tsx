@@ -51,7 +51,7 @@ export function FollowUpActionTable({
   }
 
   return (
-    <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
+    <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
       <Table>
         <TableHeader>
           <TableRow>

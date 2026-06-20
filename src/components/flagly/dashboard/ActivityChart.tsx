@@ -11,17 +11,19 @@ import {
 } from "recharts"
 
 import type { ActivityPoint } from "@/lib/flagly/types"
+import { Panel } from "@/components/flagly/shared/Panel"
 
 export function ActivityChart({ data }: { data: ActivityPoint[] }) {
   return (
-    <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
-      <div className="flex items-center justify-between px-5 pt-5">
-        <h3 className="text-sm font-semibold text-foreground">Activity</h3>
+    <Panel
+      title="Activity"
+      action={
         <span className="rounded-md border bg-card px-2 py-0.5 text-xs text-muted-foreground">
           Last 12 months
         </span>
-      </div>
-      <div className="p-5 pt-3">
+      }
+      contentClassName="p-5 pt-3"
+    >
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 8, right: 4, left: -18, bottom: 0 }} barCategoryGap="28%">
             <defs>
@@ -64,7 +66,6 @@ export function ActivityChart({ data }: { data: ActivityPoint[] }) {
             <Bar dataKey="count" fill="url(#activityBar)" radius={[6, 6, 0, 0]} maxBarSize={26} />
           </BarChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+    </Panel>
   )
 }

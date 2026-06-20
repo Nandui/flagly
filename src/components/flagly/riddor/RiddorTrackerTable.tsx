@@ -229,7 +229,8 @@ export function RiddorTrackerTable({ flags }: { flags: RiddorListItem[] }) {
           value={authority}
           onValueChange={(value) => setAuthority(value as AuthorityFilter)}
         >
-          <SelectTrigger className="h-9 w-[180px]">
+          <SelectTrigger className="h-9 w-auto min-w-[180px] gap-2">
+            <span className="text-muted-foreground">Authority:</span>
             <SelectValue placeholder="Authority" />
           </SelectTrigger>
           <SelectContent>
@@ -245,7 +246,8 @@ export function RiddorTrackerTable({ flags }: { flags: RiddorListItem[] }) {
           value={status}
           onValueChange={(value) => setStatus(value as StatusFilter)}
         >
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-9 w-auto min-w-[160px] gap-2">
+            <span className="text-muted-foreground">Status:</span>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -261,7 +263,7 @@ export function RiddorTrackerTable({ flags }: { flags: RiddorListItem[] }) {
         </Select>
       </div>
 
-      <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
+      <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

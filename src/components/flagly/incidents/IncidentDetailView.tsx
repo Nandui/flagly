@@ -26,7 +26,7 @@ import type {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Panel } from "@/components/flagly/shared/Panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Tooltip,
@@ -269,8 +269,7 @@ export function IncidentDetailView({
         {/* Overview */}
         <TabsContent value="overview">
           <div className="grid gap-5 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardContent className="space-y-5 p-5">
+            <Panel className="lg:col-span-2" contentClassName="space-y-5">
                 <div>
                   <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     What happened
@@ -312,11 +311,9 @@ export function IncidentDetailView({
                     value={daysSince(incident.occurredAt)}
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </Panel>
 
-            <Card>
-              <CardContent className="space-y-5 p-5">
+            <Panel contentClassName="space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Status
@@ -374,8 +371,7 @@ export function IncidentDetailView({
                     </div>
                   ) : null}
                 </div>
-              </CardContent>
-            </Card>
+            </Panel>
           </div>
         </TabsContent>
 
@@ -439,37 +435,33 @@ export function IncidentDetailView({
               onEdit={() => setSheet({ k: "riddor" })}
             />
           ) : incident.riddorRequired ? (
-            <Card>
-              <CardContent className="flex flex-col items-start gap-4 p-6">
-                <div className="flex items-start gap-3 text-severity-reportable">
-                  <TriangleAlert className="mt-0.5 size-5 shrink-0" />
-                  <p className="font-medium">
-                    This incident was marked as reportable. A RIDDOR / HSA flag is
-                    required.
-                  </p>
-                </div>
-                <Button onClick={() => setSheet({ k: "riddor" })}>
-                  Complete flag →
-                </Button>
-              </CardContent>
-            </Card>
+            <Panel contentClassName="flex flex-col items-start gap-4">
+              <div className="flex items-start gap-3 text-severity-reportable">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+                <p className="font-medium">
+                  This incident was marked as reportable. A RIDDOR / HSA flag is
+                  required.
+                </p>
+              </div>
+              <Button onClick={() => setSheet({ k: "riddor" })}>
+                Complete flag →
+              </Button>
+            </Panel>
           ) : (
-            <Card>
-              <CardContent className="flex flex-col items-start gap-4 p-6">
-                <div className="space-y-1">
-                  <p className="font-medium">
-                    This incident has not been flagged for authority notification.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    If this incident meets reporting criteria, use the button below
-                    to create a flag.
-                  </p>
-                </div>
-                <Button onClick={() => setSheet({ k: "riddor" })}>
-                  Create RIDDOR / HSA flag
-                </Button>
-              </CardContent>
-            </Card>
+            <Panel contentClassName="flex flex-col items-start gap-4">
+              <div className="space-y-1">
+                <p className="font-medium">
+                  This incident has not been flagged for authority notification.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  If this incident meets reporting criteria, use the button below to
+                  create a flag.
+                </p>
+              </div>
+              <Button onClick={() => setSheet({ k: "riddor" })}>
+                Create RIDDOR / HSA flag
+              </Button>
+            </Panel>
           )}
         </TabsContent>
       </Tabs>

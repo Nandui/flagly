@@ -2,7 +2,7 @@ import { Pencil } from "lucide-react"
 import type { RiddorFlag } from "@prisma/client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Panel } from "@/components/flagly/shared/Panel"
 import { RiddorStatusBadge } from "@/components/flagly/riddor/RiddorStatusBadge"
 import { DeadlineCountdown } from "@/components/flagly/riddor/DeadlineCountdown"
 import { AUTHORITY_FULL_LABELS, formatDate } from "@/lib/flagly/utils"
@@ -19,8 +19,7 @@ export function RiddorStatusCard({
   const isReported = flag.status === "REPORTED"
 
   return (
-    <Card>
-      <CardContent className="space-y-5 p-5">
+    <Panel contentClassName="space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -67,8 +66,7 @@ export function RiddorStatusCard({
             {flag.notes?.trim() ? flag.notes : "No notes recorded."}
           </p>
         </div>
-      </CardContent>
-    </Card>
+    </Panel>
   )
 }
 

@@ -209,63 +209,54 @@ export function FollowUpActionsOverviewTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Filter className="size-3.5" />
-            Centre
-          </label>
-          <Select value={centerId} onValueChange={setCenterId}>
-            <SelectTrigger className="h-9 w-[200px]">
-              <SelectValue placeholder="All centres" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_CENTERS}>All centres</SelectItem>
-              {centers.map((center) => (
-                <SelectItem key={center.id} value={center.id}>
-                  {center.name}
-                  {center.siteCode ? ` (${center.siteCode})` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Filter className="size-4" />
+          <span className="font-medium">Filters</span>
         </div>
+        <Select value={centerId} onValueChange={setCenterId}>
+          <SelectTrigger className="h-9 w-auto min-w-[180px] gap-2">
+            <span className="text-muted-foreground">Centre:</span>
+            <SelectValue placeholder="All centres" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_CENTERS}>All centres</SelectItem>
+            {centers.map((center) => (
+              <SelectItem key={center.id} value={center.id}>
+                {center.name}
+                {center.siteCode ? ` (${center.siteCode})` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Status
-          </label>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as StatusFilter)}
-          >
-            <SelectTrigger className="h-9 w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          value={status}
+          onValueChange={(value) => setStatus(value as StatusFilter)}
+        >
+          <SelectTrigger className="h-9 w-auto min-w-[170px] gap-2">
+            <span className="text-muted-foreground">Status:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTER_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Assigned to
-          </label>
-          <Input
-            value={assignedTo}
-            onChange={(event) => setAssignedTo(event.target.value)}
-            placeholder="Search by name"
-            className="h-9 w-[200px]"
-          />
-        </div>
+        <Input
+          value={assignedTo}
+          onChange={(event) => setAssignedTo(event.target.value)}
+          placeholder="Assigned to…"
+          className="h-9 w-auto min-w-[180px]"
+          aria-label="Filter by assignee"
+        />
       </div>
 
-      <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
+      <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

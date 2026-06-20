@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils"
 import { EmptyState } from "@/components/flagly/shared/EmptyState"
+import { Panel } from "@/components/flagly/shared/Panel"
 import { Users } from "lucide-react"
 
 export type LeaderboardRow = {
@@ -34,16 +34,12 @@ export function LeaderboardPanel({
   emptyText?: string
 }) {
   return (
-    <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
-      <div className="px-5 pt-5">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="p-5">
-        {rows.length === 0 ? (
-          <EmptyState icon={Users} title={emptyText} className="border-0 bg-transparent py-6" />
-        ) : (
-          <ul className="space-y-3.5">
-            {rows.map((row) => (
+    <Panel title={title}>
+      {rows.length === 0 ? (
+        <EmptyState icon={Users} title={emptyText} className="border-0 bg-transparent py-6" />
+      ) : (
+        <ul className="space-y-3.5">
+          {rows.map((row) => (
               <li key={row.name} className="flex items-center gap-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
                   {initials(row.name)}
@@ -62,7 +58,6 @@ export function LeaderboardPanel({
             ))}
           </ul>
         )}
-      </div>
-    </div>
+    </Panel>
   )
 }

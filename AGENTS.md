@@ -61,6 +61,30 @@ Flagly follows the **Spatial Interface Systems** design language:
 - Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + `:root`/`.dark`
   shadcn tokens, mapped through `@theme inline`). Flagly's `severity-*` / `status-*`
   colour layer is semantic — use those utilities, don't hardcode hex.
+- The app is an **analytics-dashboard** layout: a grey canvas (`bg-canvas`, set on
+  `SidebarInset`) with white cards floating on it.
+
+### House style — build every screen this way
+
+- **Surfaces:** use `Panel` (`@/components/flagly/shared/Panel`) for every card —
+  it is the canonical white surface (radius-card + `.shadow-card`, optional
+  `title`/`description`/`action` header). For a flush table inside, pass
+  `contentClassName="p-0"`. Don't hand-roll the `rounded-[var(--radius-card)] border
+  bg-card shadow-card` div anymore.
+- **KPIs:** `MetricCard` (`shared/MetricCard`) — small muted label, big tabular
+  value, optional `sub`, `tone` (`default|danger|warning|success`), `href`, and a
+  `spark` number[] that renders an inline `Sparkline`.
+- **Distributions / leaderboards:** `DistributionPanel` (gradient bars: `warm` /
+  `cool` / `green` / `amber` via the `.bar-*` utilities) and `LeaderboardPanel`
+  (rank + ▲▼ trend) under `components/flagly/dashboard/`.
+- **Pages:** `PageHeader` at top, then a `space-y-5/6` column. Filter rows are a
+  `flex flex-wrap items-center gap-2` of pill `Select`s with a muted `Label:`
+  prefix inside the trigger (see `DashboardFilters` / the list tables).
+- **Panel/section titles:** `text-sm font-semibold`. Tiny field labels: the
+  `.eyebrow` motif or `text-xs uppercase tracking-wide text-muted-foreground`.
+- Clickable cards get the hover lift (`hover:-translate-y-0.5
+  hover:shadow-card-lift`); page transitions fade in via the shell's motion wrapper.
+
 ## shadcn/ui
 
 This project uses **shadcn/ui** as its component library (config in
