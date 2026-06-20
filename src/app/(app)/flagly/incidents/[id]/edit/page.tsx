@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getFlaglyContext } from "@/lib/flagly/context"
+import { isAdmin } from "@/lib/centrely/roles"
 import { getIncidentDetail } from "@/lib/flagly/data/incidents"
 import { getAreaOptions } from "@/lib/flagly/data/areas"
 import { getUserOptions } from "@/lib/flagly/data/users"
@@ -17,10 +18,10 @@ export default async function EditIncidentPage({
 }) {
   const { id } = await params
   const { user, activeCenter, centers } = await getFlaglyContext()
-  const isAdmin = user.role === "Admin"
+  const admin = isAdmin(user.role)
   const [areas, users] = await Promise.all([
     getAreaOptions(),
-    isAdmin ? getUserOptions() : Promise.resolve([]),
+    admin ? getUserOptions() : Promise.resolve([]),
   ])
 
   const incident = await getIncidentDetail(id)
@@ -43,7 +44,7 @@ export default async function EditIncidentPage({
         areas={areas}
         users={users}
         currentUser={{ id: user.id, name: user.name }}
-        isAdmin={isAdmin}
+        isAdmin={admin}
         defaultCenterId={activeCenter?.id ?? null}
         initial={{
           id: incident.id,

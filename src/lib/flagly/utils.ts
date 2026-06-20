@@ -107,20 +107,7 @@ export const INCIDENT_TYPE_OPTIONS = toOptions(INCIDENT_TYPE_LABELS)
 export const INJURED_PARTY_TYPE_OPTIONS = toOptions(INJURED_PARTY_TYPE_LABELS)
 export const TREATMENT_OPTIONS = toOptions(TREATMENT_LABELS)
 export const REGION_OPTIONS = toOptions(REGION_LABELS)
-
-// User roles, ranked low → high. Capability gating lives in lib/centrely/modules.
-export const USER_ROLES = [
-  "Viewer",
-  "Contributor",
-  "Reviewer",
-  "Assessor",
-  "Admin",
-] as const
-
-export const USER_ROLE_OPTIONS = USER_ROLES.map((role) => ({
-  value: role,
-  label: role,
-}))
+// User roles and the admin check live in `@/lib/centrely/roles`.
 
 export const SEVERITY_ORDER: IncidentSeverity[] = [
   "MINOR",

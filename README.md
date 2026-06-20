@@ -56,8 +56,8 @@ Password: password123
 ```
 
 The seed creates two centres (LeisureWorld Cork `LW`, LeisureWorld Dublin `LD`),
-each with their own areas/sub-areas, three users (one Admin + two staff, all
-password `password123`), and eight incidents across the last six months —
+each with their own areas/sub-areas, three users (an Operations Manager + two
+staff, all password `password123`), and eight incidents across the last six months —
 including a REPORTABLE staff injury with an overdue follow-up action, so the
 dashboard is populated from first load.
 
@@ -85,9 +85,9 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 | `/flagly/incidents/[id]` | Incident detail — Overview / Witnesses / Injured / Actions tabs |
 | `/flagly/incidents/[id]/edit` | Edit core incident fields |
 | `/flagly/actions` | Cross-incident follow-up actions |
-| `/flagly/centres` | Manage centres — add / edit / site code (Admin only) |
-| `/flagly/areas` | Manage per-centre areas & sub-areas (Admin only) |
-| `/flagly/users` | Manage users — name / email / role / centre / password (Admin only) |
+| `/flagly/centres` | Manage centres — add / edit / site code (Operations Manager only) |
+| `/flagly/areas` | Manage per-centre areas & sub-areas (Operations Manager only) |
+| `/flagly/users` | Manage users — name / email / role / centre / password (Operations Manager only) |
 
 ## Architecture
 

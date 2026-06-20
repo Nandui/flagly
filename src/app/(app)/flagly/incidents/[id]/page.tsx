@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { requireUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { getIncidentDetail } from "@/lib/flagly/data/incidents"
 import { IncidentDetailView } from "@/components/flagly/incidents/IncidentDetailView"
 
@@ -33,7 +34,7 @@ export default async function IncidentDetailPage({
     <IncidentDetailView
       incident={incident}
       currentUserName={user.name}
-      isAdmin={user.role === "Admin"}
+      isAdmin={isAdmin(user.role)}
       initialTab={tab}
     />
   )

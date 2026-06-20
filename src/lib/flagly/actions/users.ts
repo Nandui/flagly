@@ -6,15 +6,18 @@ import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
 import { hashPassword } from "@/lib/password"
+import { ADMIN_ROLES, isAdmin } from "@/lib/centrely/roles"
 import { createUserSchema, updateUserSchema } from "@/lib/flagly/validation"
 import { fail, fromZodError, ok } from "@/lib/flagly/actions/result"
 import type { ActionResult } from "@/lib/flagly/types"
 
+const ADMIN_ROLE_FILTER = [...ADMIN_ROLES]
+
 async function requireAdmin() {
   const user = await getCurrentUser()
   if (!user) return { ok: false as const, error: "You must be signed in." }
-  if (user.role !== "Admin")
-    return { ok: false as const, error: "Only admins can manage users." }
+  if (!isAdmin(user.role))
+    return { ok: false as const, error: "Only the Operations Manager can manage users." }
   return { ok: true as const, user }
 }
 
@@ -67,10 +70,12 @@ export async function updateUser(raw: unknown): Promise<ActionResult<{ id: strin
   if (!target) return fail("User not found.")
 
   // Don't allow demoting the last remaining admin (would lock everyone out).
-  if (target.role === "Admin" && d.role !== "Admin") {
-    const adminCount = await prisma.user.count({ where: { role: "Admin" } })
+  if (isAdmin(target.role) && !isAdmin(d.role)) {
+    const adminCount = await prisma.user.count({
+      where: { role: { in: ADMIN_ROLE_FILTER } },
+    })
     if (adminCount <= 1) {
-      return fail("You can't change the role of the only remaining admin.")
+      return fail("You can't change the role of the only remaining Operations Manager.")
     }
   }
 
@@ -110,10 +115,12 @@ export async function deleteUser(id: string): Promise<ActionResult<{ id: string 
   })
   if (!target) return fail("User not found.")
 
-  if (target.role === "Admin") {
-    const adminCount = await prisma.user.count({ where: { role: "Admin" } })
+  if (isAdmin(target.role)) {
+    const adminCount = await prisma.user.count({
+      where: { role: { in: ADMIN_ROLE_FILTER } },
+    })
     if (adminCount <= 1) {
-      return fail("You can't delete the only remaining admin.")
+      return fail("You can't delete the only remaining Operations Manager.")
     }
   }
 

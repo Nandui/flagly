@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { USER_ROLES } from "@/lib/centrely/roles"
+
 // ─── First-run admin setup ───────────────────────────────────────────────────
 
 export const firstAdminSchema = z.object({
@@ -31,13 +33,7 @@ export const updateCenterSchema = createCenterSchema.extend({
 
 // ─── User management (admin) ─────────────────────────────────────────────────
 
-const roleField = z.enum([
-  "Viewer",
-  "Contributor",
-  "Reviewer",
-  "Assessor",
-  "Admin",
-])
+const roleField = z.enum(USER_ROLES)
 
 export const createUserSchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(200),

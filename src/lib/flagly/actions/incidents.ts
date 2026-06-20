@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { generateIncidentReference } from "@/lib/flagly/reference"
 import {
   closeIncidentSchema,
@@ -62,7 +63,7 @@ async function resolveReporter(
   | { ok: true; reportedBy: string; reportedById: string }
   | { ok: false; error: string }
 > {
-  if (current.role !== "Admin" || !requestedId || requestedId === current.id) {
+  if (!isAdmin(current.role) || !requestedId || requestedId === current.id) {
     return { ok: true, reportedBy: current.name, reportedById: current.id }
   }
   const reporter = await prisma.user.findUnique({
@@ -163,7 +164,7 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
 
   // Only admins may reassign the reporter; a blank/absent value leaves it as-is.
   let reporterUpdate: { reportedBy: string; reportedById: string } | undefined
-  if (user.role === "Admin" && d.reportedById) {
+  if (isAdmin(user.role) && d.reportedById) {
     const reporter = await resolveReporter(user, d.reportedById)
     if (!reporter.ok) return fail(reporter.error)
     reporterUpdate = {
@@ -250,7 +251,7 @@ export async function setIncidentStatus(
 export async function deleteIncident(id: string): Promise<ActionResult<{ id: string }>> {
   const user = await getCurrentUser()
   if (!user) return fail("You must be signed in.")
-  if (user.role !== "Admin") return fail("Only admins can delete incidents.")
+  if (!isAdmin(user.role)) return fail("Only the Operations Manager can delete incidents.")
 
   const incident = await prisma.incident.findUnique({
     where: { id },

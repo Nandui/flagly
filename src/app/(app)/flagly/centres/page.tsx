@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { requireUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { getCentersWithCounts } from "@/lib/flagly/data/centers"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
 import { CentresManager } from "@/components/flagly/centres/CentresManager"
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Centres" }
 
 export default async function CentresPage() {
   const user = await requireUser()
-  if (user.role !== "Admin") redirect("/flagly")
+  if (!isAdmin(user.role)) redirect("/flagly")
 
   const centers = await getCentersWithCounts()
 

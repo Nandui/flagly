@@ -44,7 +44,7 @@ model User {
   name         String
   email        String   @unique
   passwordHash String?
-  role         String   @default("Viewer") // "Viewer" | "Contributor" | "Reviewer" | "Assessor" | "Admin"
+  role         String   @default("Duty Manager") // Operations Manager | CEO | Duty Manager | Shift Supervisor | Department Supervisor
   centerId     String?
   center       Center?  @relation(fields: [centerId], references: [id])
   createdAt    DateTime @default(now())

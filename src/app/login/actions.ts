@@ -5,6 +5,7 @@ import { AuthError } from "next-auth"
 import { signIn } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/password"
+import { PRIMARY_ADMIN_ROLE } from "@/lib/centrely/roles"
 import { firstAdminSchema } from "@/lib/flagly/validation"
 
 export async function authenticate(
@@ -68,7 +69,7 @@ export async function createFirstAdmin(
     data: {
       name: parsed.data.name,
       email,
-      role: "Admin",
+      role: PRIMARY_ADMIN_ROLE,
       centerId: center.id,
       passwordHash: await hashPassword(parsed.data.password),
     },

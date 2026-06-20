@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Map } from "lucide-react"
 
 import { requireUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { getActiveCenter } from "@/lib/centrely/active-center"
 import { getAreaTree } from "@/lib/flagly/data/areas"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
@@ -17,7 +18,7 @@ export default async function AreasPage({
   searchParams: Promise<{ center?: string }>
 }) {
   const user = await requireUser()
-  if (user.role !== "Admin") redirect("/flagly")
+  if (!isAdmin(user.role)) redirect("/flagly")
 
   const { center } = await searchParams
   const { active, centers } = await getActiveCenter(user)

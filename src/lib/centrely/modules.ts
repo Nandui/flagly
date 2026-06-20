@@ -51,11 +51,11 @@ export function getAccessibleModules(_role?: string): ModuleDef[] {
 
 const CAP_RANK: Record<Capability, number> = { view: 0, edit: 1, admin: 2 }
 const ROLE_CAP: Record<string, Capability> = {
-  Viewer: "view",
-  Contributor: "edit",
-  Reviewer: "edit",
-  Assessor: "edit",
-  Admin: "admin",
+  "Operations Manager": "admin",
+  CEO: "edit",
+  "Duty Manager": "edit",
+  "Shift Supervisor": "edit",
+  "Department Supervisor": "edit",
 }
 
 export function hasCapability(role: string, required: Capability): boolean {

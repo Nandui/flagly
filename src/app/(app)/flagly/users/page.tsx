@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { requireUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { getUsers } from "@/lib/flagly/data/users"
 import { listCenters } from "@/lib/centrely/active-center"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Users" }
 
 export default async function UsersPage() {
   const current = await requireUser()
-  if (current.role !== "Admin") redirect("/flagly")
+  if (!isAdmin(current.role)) redirect("/flagly")
 
   const [users, centers] = await Promise.all([getUsers(), listCenters()])
 

@@ -48,15 +48,21 @@ Read this before changing code.
   on the dashboard active list. `OPEN` and above do.
 - `ActionStatus.OVERDUE` is stored in the DB and refreshed on read by
   `sweepOverdueActions` in `data/incidents.ts`.
+- **Roles & admin:** roles live in `src/lib/centrely/roles.ts` (`USER_ROLES`:
+  Operations Manager, CEO, Duty Manager, Shift Supervisor, Department Supervisor).
+  The **Operations Manager** is the admin-equivalent. Never compare
+  `role === "Admin"` — always use the `isAdmin(role)` helper, which is the single
+  source of truth (enforced in every admin server action + page guard, and the
+  sidebar's admin group).
 - **Reporter attribution:** an incident is attributed to the signed-in user
-  (`reportedBy` name + `reportedById` link). Only **admins** may attribute a
-  report to a different user — enforced server-side in `actions/incidents.ts`
+  (`reportedBy` name + `reportedById` link). Only admins (`isAdmin`) may attribute
+  a report to a different user — enforced server-side in `actions/incidents.ts`
   (`resolveReporter`), not just in the form. `reportedById` is a loose link (no
   FK), so deleting a user keeps the recorded `reportedBy` name.
 - **Users** are managed under **Admin → Users** (`/flagly/users`,
-  `data/users.ts` + `actions/users.ts`). Roles are the strings in
-  `USER_ROLES`; passwords are bcrypt-hashed via `lib/password.ts`. Guards stop an
-  admin deleting their own account or removing/demoting the last remaining admin.
+  `data/users.ts` + `actions/users.ts`); passwords are bcrypt-hashed via
+  `lib/password.ts`. Guards stop an admin deleting their own account or
+  removing/demoting the last remaining Operations Manager.
 
 ## Design system
 

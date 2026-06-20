@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { MODULE_NAV, type NavItem } from "@/lib/centrely/modules"
+import { isAdmin } from "@/lib/centrely/roles"
 import { CenterSwitcher } from "@/components/flagly/layout/CenterSwitcher"
 import { ThemeToggle } from "@/components/flagly/layout/ThemeToggle"
 import { logout } from "@/lib/centrely/auth-actions"
@@ -53,7 +54,7 @@ export function FlaglySidebar({
 }) {
   const pathname = usePathname()
   const nav = MODULE_NAV.flagly
-  const isAdmin = user.role === "Admin"
+  const showAdmin = isAdmin(user.role)
 
   return (
     <Sidebar>
@@ -98,7 +99,7 @@ export function FlaglySidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isAdmin ? (
+        {showAdmin ? (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>

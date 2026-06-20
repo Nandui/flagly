@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
+import { DEFAULT_ROLE } from "@/lib/centrely/roles"
 
 export type SessionUser = {
   id: string
@@ -17,7 +18,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     id: session.user.id,
     name: session.user.name ?? "Unknown",
     email: session.user.email ?? "",
-    role: session.user.role ?? "Viewer",
+    role: session.user.role ?? DEFAULT_ROLE,
     centerId: session.user.centerId ?? null,
   }
 }

@@ -23,7 +23,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Field } from "@/components/flagly/shared/Field"
-import { USER_ROLE_OPTIONS } from "@/lib/flagly/utils"
+import { DEFAULT_ROLE, USER_ROLE_OPTIONS } from "@/lib/centrely/roles"
 import { createUser, updateUser } from "@/lib/flagly/actions/users"
 import type { UserRow } from "@/lib/flagly/types"
 import type { CenterSummary } from "@/lib/centrely/active-center"
@@ -46,7 +46,7 @@ export function UserForm({
 
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
-  const [role, setRole] = React.useState("Viewer")
+  const [role, setRole] = React.useState<string>(DEFAULT_ROLE)
   const [centerId, setCenterId] = React.useState(NO_CENTER)
   const [password, setPassword] = React.useState("")
 
@@ -54,7 +54,7 @@ export function UserForm({
     if (!open) return
     setName(record?.name ?? "")
     setEmail(record?.email ?? "")
-    setRole(record?.role ?? "Viewer")
+    setRole(record?.role ?? DEFAULT_ROLE)
     setCenterId(record?.centerId ?? NO_CENTER)
     setPassword("")
   }, [open, record])

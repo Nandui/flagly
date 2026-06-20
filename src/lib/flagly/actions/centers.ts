@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
+import { isAdmin } from "@/lib/centrely/roles"
 import { createCenterSchema, updateCenterSchema } from "@/lib/flagly/validation"
 import { fail, fromZodError, ok } from "@/lib/flagly/actions/result"
 import type { ActionResult } from "@/lib/flagly/types"
@@ -12,8 +13,8 @@ import type { ActionResult } from "@/lib/flagly/types"
 async function requireAdmin() {
   const user = await getCurrentUser()
   if (!user) return { ok: false as const, error: "You must be signed in." }
-  if (user.role !== "Admin")
-    return { ok: false as const, error: "Only admins can manage centres." }
+  if (!isAdmin(user.role))
+    return { ok: false as const, error: "Only the Operations Manager can manage centres." }
   return { ok: true as const, user }
 }
 
