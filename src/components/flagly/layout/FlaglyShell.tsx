@@ -30,8 +30,8 @@ export function FlaglyShell({
   return (
     <SidebarProvider>
       <FlaglySidebar user={user} centers={centers} activeCenterId={activeCenterId} />
-      <SidebarInset>
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur lg:px-6">
+      <SidebarInset className="bg-canvas">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/60 bg-canvas/70 px-4 backdrop-blur lg:px-6">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto flex items-center gap-2">
             <Button asChild size="sm">

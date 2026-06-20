@@ -10,6 +10,14 @@ import type {
   RiddorStatus,
   TreatmentGiven,
 } from "@prisma/client"
+import type { Timeframe } from "@/lib/flagly/types"
+
+export const TIMEFRAME_OPTION_KEYS: Timeframe[] = [
+  "LAST_7_DAYS",
+  "THIS_MONTH",
+  "THIS_YEAR",
+  "ALL_TIME",
+]
 
 // ─── Enum labels ──────────────────────────────────────────────────────────────
 
@@ -90,6 +98,19 @@ export const REGION_LABELS: Record<Region, string> = {
   IRELAND: "Republic of Ireland",
   NORTHERN_IRELAND: "Northern Ireland",
   GREAT_BRITAIN: "Great Britain",
+}
+
+export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
+  LAST_7_DAYS: "Last 7 days",
+  THIS_MONTH: "This month",
+  THIS_YEAR: "This year",
+  ALL_TIME: "All-time",
+}
+
+export const DEFAULT_TIMEFRAME: Timeframe = "THIS_YEAR"
+
+export function parseTimeframe(value: string | undefined): Timeframe {
+  return value && value in TIMEFRAME_LABELS ? (value as Timeframe) : DEFAULT_TIMEFRAME
 }
 
 // Option arrays for <Select> controls.

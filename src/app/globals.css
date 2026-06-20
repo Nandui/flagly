@@ -10,6 +10,7 @@
 @theme {
   /* neutrals */
   --color-bg: #ffffff;
+  --color-canvas: #f1f3f5; /* grey app canvas behind white cards */
   --color-surface: #ffffff;
   --color-surface-2: #f3f4f6;
   --color-ink: #111827;
@@ -149,6 +150,7 @@
 
   /* neutrals — dark */
   --color-bg: #0b1220;
+  --color-canvas: #0b1220;
   --color-surface: #111827;
   --color-surface-2: #1f2937;
   --color-ink: #e5e7eb;
@@ -299,6 +301,20 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
+}
+
+/* Gradient progress-bar fills (dashboard distribution panels) */
+.bar-warm {
+  background-image: linear-gradient(90deg, #fb923c, #ef4444);
+}
+.bar-cool {
+  background-image: linear-gradient(90deg, #60a5fa, #2563eb);
+}
+.bar-green {
+  background-image: linear-gradient(90deg, #4ade80, #16a34a);
+}
+.bar-amber {
+  background-image: linear-gradient(90deg, #fcd34d, #d97706);
 }
 
 /* Soft panel depth on the white canvas */

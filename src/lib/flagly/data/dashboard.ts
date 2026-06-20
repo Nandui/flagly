@@ -1,77 +1,140 @@
 import {
   endOfMonth,
+  endOfYear,
   format,
+  startOfDay,
   startOfMonth,
+  startOfYear,
+  subDays,
   subMonths,
+  subYears,
 } from "date-fns"
-import type { IncidentType } from "@prisma/client"
+import type { IncidentType, Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
-import { getIncidents, sweepOverdueActions, sweepOverdueRiddor } from "@/lib/flagly/data/incidents"
-import { getOverdueActions } from "@/lib/flagly/data/actions"
+import { sweepOverdueActions, sweepOverdueRiddor } from "@/lib/flagly/data/incidents"
 import { daysUntil } from "@/lib/flagly/utils"
 import type {
+  ActivityPoint,
+  AssigneeRank,
   DashboardAlertFlag,
   DashboardData,
-  TrendBucket,
+  DistributionItem,
+  ReporterRank,
+  Timeframe,
+  TypeDistributionItem,
 } from "@/lib/flagly/types"
 
-const TREND_TYPES: IncidentType[] = [
-  "ACCIDENT",
-  "NEAR_MISS",
-  "PROPERTY_DAMAGE",
-  "VIOLENCE_AGGRESSION",
-  "HAZARDOUS_SUBSTANCE",
-  "FIRE_OR_EVACUATION",
-  "OTHER",
-]
+type Window = {
+  start: Date | null
+  end: Date
+  prevStart: Date | null
+  prevEnd: Date | null
+}
 
-function emptyBucket(month: string): TrendBucket {
-  return {
-    month,
-    ACCIDENT: 0,
-    NEAR_MISS: 0,
-    PROPERTY_DAMAGE: 0,
-    VIOLENCE_AGGRESSION: 0,
-    HAZARDOUS_SUBSTANCE: 0,
-    FIRE_OR_EVACUATION: 0,
-    OTHER: 0,
+function resolveWindow(tf: Timeframe): Window {
+  const now = new Date()
+  switch (tf) {
+    case "LAST_7_DAYS": {
+      const start = startOfDay(subDays(now, 6))
+      return { start, end: now, prevStart: startOfDay(subDays(start, 7)), prevEnd: start }
+    }
+    case "THIS_YEAR": {
+      const start = startOfYear(now)
+      return {
+        start,
+        end: endOfYear(now),
+        prevStart: startOfYear(subYears(now, 1)),
+        prevEnd: endOfYear(subYears(now, 1)),
+      }
+    }
+    case "ALL_TIME":
+      return { start: null, end: now, prevStart: null, prevEnd: null }
+    case "THIS_MONTH":
+    default: {
+      const start = startOfMonth(now)
+      return {
+        start,
+        end: endOfMonth(now),
+        prevStart: startOfMonth(subMonths(now, 1)),
+        prevEnd: endOfMonth(subMonths(now, 1)),
+      }
+    }
   }
 }
 
-export async function getDashboardData(centerId: string): Promise<DashboardData> {
+const isReportable = (s: string) => s === "REPORTABLE" || s === "CRITICAL"
+
+export async function getDashboardData(
+  centerId: string,
+  opts: { timeframe: Timeframe; type?: IncidentType | null }
+): Promise<DashboardData> {
   await Promise.all([sweepOverdueActions(centerId), sweepOverdueRiddor()])
 
+  const { timeframe, type } = opts
+  const win = resolveWindow(timeframe)
   const now = new Date()
-  const monthStart = startOfMonth(now)
-  const monthEnd = endOfMonth(now)
-  const trendStart = startOfMonth(subMonths(now, 5))
+  const typeWhere: Prisma.IncidentWhereInput = type ? { type } : {}
+  const incidentScope: Prisma.IncidentWhereInput = {
+    centerId,
+    status: { not: "DRAFT" },
+    ...typeWhere,
+  }
+
+  const twelveMoStart = startOfMonth(subMonths(now, 11))
 
   const [
-    incidentsThisMonth,
-    openIncidents,
-    riddorPending,
-    overdueActionsCount,
-    alertFlagRecords,
-    activeIncidents,
+    periodIncidents,
+    twelveMoIncidents,
+    open,
     overdueActions,
-    trendIncidents,
+    riddorPending,
+    prevReporters,
+    actionRows,
+    alertFlagRecords,
   ] = await Promise.all([
-    prisma.incident.count({
+    prisma.incident.findMany({
       where: {
-        centerId,
-        status: { not: "DRAFT" },
-        occurredAt: { gte: monthStart, lte: monthEnd },
+        ...incidentScope,
+        ...(win.start ? { occurredAt: { gte: win.start, lte: win.end } } : {}),
+      },
+      select: {
+        severity: true,
+        type: true,
+        location: true,
+        reportedBy: true,
+        injuredCount: true,
       },
     }),
-    prisma.incident.count({
-      where: { centerId, status: { in: ["OPEN", "UNDER_INVESTIGATION"] } },
+    prisma.incident.findMany({
+      where: { ...incidentScope, occurredAt: { gte: twelveMoStart } },
+      select: { occurredAt: true, severity: true, injuredCount: true },
     }),
-    prisma.riddorFlag.count({
-      where: { status: "PENDING", incident: { centerId } },
+    prisma.incident.count({
+      where: { centerId, ...typeWhere, status: { in: ["OPEN", "UNDER_INVESTIGATION"] } },
     }),
     prisma.followUpAction.count({
-      where: { status: "OVERDUE", incident: { centerId } },
+      where: { status: "OVERDUE", incident: { centerId, ...typeWhere } },
+    }),
+    prisma.riddorFlag.count({
+      where: { status: "PENDING", incident: { centerId, ...typeWhere } },
+    }),
+    win.prevStart
+      ? prisma.incident.groupBy({
+          by: ["reportedBy"],
+          where: {
+            ...incidentScope,
+            occurredAt: { gte: win.prevStart, lte: win.prevEnd ?? now },
+          },
+          _count: { _all: true },
+        })
+      : Promise.resolve([] as { reportedBy: string; _count: { _all: number } }[]),
+    prisma.followUpAction.findMany({
+      where: {
+        status: { in: ["OPEN", "IN_PROGRESS", "OVERDUE"] },
+        incident: { centerId, ...typeWhere },
+      },
+      select: { assignedTo: true, status: true },
     }),
     prisma.riddorFlag.findMany({
       where: { status: { in: ["PENDING", "OVERDUE"] }, incident: { centerId } },
@@ -82,17 +145,75 @@ export async function getDashboardData(centerId: string): Promise<DashboardData>
         incident: { select: { id: true, reference: true } },
       },
     }),
-    getIncidents({ centerId, statuses: { in: ["OPEN", "UNDER_INVESTIGATION"] } }),
-    getOverdueActions({ centerId }),
-    prisma.incident.findMany({
-      where: {
-        centerId,
-        status: { not: "DRAFT" },
-        occurredAt: { gte: trendStart, lte: monthEnd },
-      },
-      select: { occurredAt: true, type: true },
-    }),
   ])
+
+  // ── Stats ──
+  const stats = {
+    incidents: periodIncidents.length,
+    open,
+    overdueActions,
+    riddorPending,
+    reportable: periodIncidents.filter((i) => isReportable(i.severity)).length,
+    injured: periodIncidents.reduce((sum, i) => sum + i.injuredCount, 0),
+  }
+
+  // ── 12-month activity + 6-month sparklines ──
+  const buckets: { key: string; month: string; count: number; reportable: number; injured: number }[] = []
+  const index = new Map<string, number>()
+  for (let i = 11; i >= 0; i--) {
+    const d = startOfMonth(subMonths(now, i))
+    const key = format(d, "yyyy-MM")
+    index.set(key, buckets.length)
+    buckets.push({ key, month: format(d, "MMM"), count: 0, reportable: 0, injured: 0 })
+  }
+  for (const inc of twelveMoIncidents) {
+    const idx = index.get(format(startOfMonth(inc.occurredAt), "yyyy-MM"))
+    if (idx === undefined) continue
+    buckets[idx].count += 1
+    if (isReportable(inc.severity)) buckets[idx].reportable += 1
+    buckets[idx].injured += inc.injuredCount
+  }
+  const activity: ActivityPoint[] = buckets.map((b) => ({ month: b.month, count: b.count }))
+  const last6 = buckets.slice(-6)
+  const sparks = {
+    incidents: last6.map((b) => b.count),
+    reportable: last6.map((b) => b.reportable),
+    injured: last6.map((b) => b.injured),
+  }
+
+  // ── Distributions ──
+  const locations = topCounts(periodIncidents.map((i) => i.location)).map(
+    ([label, count]): DistributionItem => ({ label, count })
+  )
+
+  const typeCounts = new Map<IncidentType, number>()
+  for (const i of periodIncidents) typeCounts.set(i.type, (typeCounts.get(i.type) ?? 0) + 1)
+  const types: TypeDistributionItem[] = [...typeCounts.entries()]
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // ── Reporters leaderboard (with trend vs previous period) ──
+  const prevMap = new Map(prevReporters.map((r) => [r.reportedBy, r._count._all]))
+  const reporters: ReporterRank[] = topCounts(periodIncidents.map((i) => i.reportedBy))
+    .map(([name, count]): ReporterRank => {
+      const prev = prevMap.get(name)
+      const trend =
+        prev === undefined ? "flat" : count > prev ? "up" : count < prev ? "down" : "flat"
+      return { name, count, trend }
+    })
+
+  // ── Assignees leaderboard (outstanding actions) ──
+  const assigneeMap = new Map<string, { open: number; overdue: number }>()
+  for (const a of actionRows) {
+    const entry = assigneeMap.get(a.assignedTo) ?? { open: 0, overdue: 0 }
+    entry.open += 1
+    if (a.status === "OVERDUE") entry.overdue += 1
+    assigneeMap.set(a.assignedTo, entry)
+  }
+  const assignees: AssigneeRank[] = [...assigneeMap.entries()]
+    .map(([name, v]) => ({ name, open: v.open, overdue: v.overdue }))
+    .sort((a, b) => b.overdue - a.overdue || b.open - a.open)
+    .slice(0, 6)
 
   const alertFlags: DashboardAlertFlag[] = alertFlagRecords.map((flag) => ({
     incidentId: flag.incident.id,
@@ -102,35 +223,22 @@ export async function getDashboardData(centerId: string): Promise<DashboardData>
     daysRemaining: daysUntil(flag.reportingDeadline),
   }))
 
-  // Build six ascending month buckets, then tally incidents by type.
-  const buckets: TrendBucket[] = []
-  const bucketIndex = new Map<string, number>()
-  for (let i = 5; i >= 0; i--) {
-    const d = startOfMonth(subMonths(now, i))
-    const key = format(d, "yyyy-MM")
-    bucketIndex.set(key, buckets.length)
-    buckets.push(emptyBucket(format(d, "MMM")))
-  }
-  for (const incident of trendIncidents) {
-    const key = format(startOfMonth(incident.occurredAt), "yyyy-MM")
-    const idx = bucketIndex.get(key)
-    if (idx === undefined) continue
-    if (TREND_TYPES.includes(incident.type)) {
-      buckets[idx][incident.type] += 1
-    }
-  }
-
   return {
-    stats: {
-      incidentsThisMonth,
-      openIncidents,
-      riddorPending,
-      overdueActions: overdueActionsCount,
-    },
+    timeframe,
+    stats,
+    sparks,
+    activity,
+    locations,
+    types,
+    reporters,
+    assignees,
     alertFlags,
     hasOverdueFlag: alertFlags.some((f) => f.status === "OVERDUE"),
-    activeIncidents: activeIncidents.slice(0, 10),
-    overdueActions,
-    trend: buckets,
   }
+}
+
+function topCounts(values: string[], limit = 6): [string, number][] {
+  const map = new Map<string, number>()
+  for (const v of values) map.set(v, (map.get(v) ?? 0) + 1)
+  return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit)
 }

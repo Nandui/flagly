@@ -98,11 +98,21 @@ export type RiddorListItem = {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────────
 
+export type Timeframe = "LAST_7_DAYS" | "THIS_MONTH" | "THIS_YEAR" | "ALL_TIME"
+
 export type DashboardStats = {
-  incidentsThisMonth: number
-  openIncidents: number
-  riddorPending: number
+  incidents: number
+  open: number
   overdueActions: number
+  riddorPending: number
+  reportable: number
+  injured: number
+}
+
+export type DashboardSparks = {
+  incidents: number[]
+  reportable: number[]
+  injured: number[]
 }
 
 export type DashboardAlertFlag = {
@@ -113,22 +123,28 @@ export type DashboardAlertFlag = {
   daysRemaining: number
 }
 
-export type TrendBucket = {
-  month: string
-  ACCIDENT: number
-  NEAR_MISS: number
-  PROPERTY_DAMAGE: number
-  VIOLENCE_AGGRESSION: number
-  HAZARDOUS_SUBSTANCE: number
-  FIRE_OR_EVACUATION: number
-  OTHER: number
+export type ActivityPoint = { month: string; count: number }
+
+export type DistributionItem = { label: string; count: number }
+export type TypeDistributionItem = { type: IncidentType; count: number }
+
+export type ReporterRank = {
+  name: string
+  count: number
+  trend: "up" | "down" | "flat"
 }
 
+export type AssigneeRank = { name: string; open: number; overdue: number }
+
 export type DashboardData = {
+  timeframe: Timeframe
   stats: DashboardStats
+  sparks: DashboardSparks
+  activity: ActivityPoint[]
+  locations: DistributionItem[]
+  types: TypeDistributionItem[]
+  reporters: ReporterRank[]
+  assignees: AssigneeRank[]
   alertFlags: DashboardAlertFlag[]
   hasOverdueFlag: boolean
-  activeIncidents: IncidentListItem[]
-  overdueActions: ActionListItem[]
-  trend: TrendBucket[]
 }

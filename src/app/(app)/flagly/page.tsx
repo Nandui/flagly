@@ -1,249 +1,181 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
   Clock,
   FileWarning,
+  MapPin,
+  ShieldAlert,
+  Tag,
+  UserRound,
 } from "lucide-react"
+import type { IncidentType } from "@prisma/client"
 
 import { getFlaglyContext } from "@/lib/flagly/context"
 import { getDashboardData } from "@/lib/flagly/data/dashboard"
-import { daysUntil, formatDate } from "@/lib/flagly/utils"
-import { cn } from "@/lib/utils"
+import {
+  INCIDENT_TYPE_LABELS,
+  TIMEFRAME_LABELS,
+  parseTimeframe,
+  pluralize,
+} from "@/lib/flagly/utils"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
-import { StatCard } from "@/components/flagly/shared/StatCard"
 import { EmptyState } from "@/components/flagly/shared/EmptyState"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { IncidentTypeBadge } from "@/components/flagly/incidents/IncidentTypeBadge"
-import { IncidentSeverityBadge } from "@/components/flagly/incidents/IncidentSeverityBadge"
-import { IncidentStatusBadge } from "@/components/flagly/incidents/IncidentStatusBadge"
+import { DashboardFilters } from "@/components/flagly/dashboard/DashboardFilters"
+import { MetricCard } from "@/components/flagly/dashboard/MetricCard"
+import { ActivityChart } from "@/components/flagly/dashboard/ActivityChart"
+import { DistributionPanel } from "@/components/flagly/dashboard/DistributionPanel"
+import { LeaderboardPanel } from "@/components/flagly/dashboard/LeaderboardPanel"
 import { RiddorAlertBanner } from "@/components/flagly/dashboard/RiddorAlertBanner"
-import { IncidentTrendChart } from "@/components/flagly/dashboard/IncidentTrendChart"
 
 export const metadata: Metadata = { title: "Dashboard" }
 
-export default async function FlaglyDashboardPage() {
-  const { activeCenter } = await getFlaglyContext()
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tf?: string; type?: string }>
+}) {
+  const { tf, type } = await searchParams
+  const { activeCenter, centers } = await getFlaglyContext()
 
   if (!activeCenter) {
     return (
       <div className="space-y-6">
         <PageHeader title="Dashboard" description="Incident overview" />
         <EmptyState
+          icon={FileWarning}
           title="No centre selected."
-          description="Select an active centre to view its incident dashboard."
+          description="Add or select a centre to see its incident overview."
         />
       </div>
     )
   }
 
-  const data = await getDashboardData(activeCenter.id)
-  const { stats, alertFlags, hasOverdueFlag, activeIncidents, overdueActions } =
-    data
+  const timeframe = parseTimeframe(tf)
+  const typeFilter =
+    type && type in INCIDENT_TYPE_LABELS ? (type as IncidentType) : null
+  const period = TIMEFRAME_LABELS[timeframe].toLowerCase()
+
+  const data = await getDashboardData(activeCenter.id, { timeframe, type: typeFilter })
+  const { stats, sparks } = data
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Dashboard"
         description={`Incident overview · ${activeCenter.name}`}
-      >
-        <Button asChild>
-          <Link href="/flagly/incidents/new">Report incident</Link>
-        </Button>
-      </PageHeader>
+      />
 
-      {/* 11.1 Stats bar */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Incidents this month"
-          value={stats.incidentsThisMonth}
+      <DashboardFilters
+        centers={centers}
+        activeCenterId={activeCenter.id}
+        timeframe={timeframe}
+        type={typeFilter}
+      />
+
+      <RiddorAlertBanner flags={data.alertFlags} hasOverdueFlag={data.hasOverdueFlag} />
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="Incidents"
+          value={stats.incidents}
+          sub={period}
           icon={FileWarning}
+          spark={sparks.incidents}
           href="/flagly/incidents"
         />
-        <StatCard
+        <MetricCard
           label="Open incidents"
-          value={stats.openIncidents}
+          value={stats.open}
+          sub="right now"
           icon={Activity}
           href="/flagly/incidents"
         />
-        <StatCard
-          label="RIDDOR / HSA pending"
-          value={stats.riddorPending}
-          icon={AlertTriangle}
-          tone="warning"
-          href="/flagly/riddor"
-        />
-        <StatCard
+        <MetricCard
           label="Overdue actions"
           value={stats.overdueActions}
+          sub="right now"
           icon={Clock}
           tone="danger"
           href="/flagly/actions"
         />
+        <MetricCard
+          label="RIDDOR / HSA pending"
+          value={stats.riddorPending}
+          sub="right now"
+          icon={AlertTriangle}
+          tone="warning"
+          href="/flagly/riddor"
+        />
+        <MetricCard
+          label="Reportable"
+          value={stats.reportable}
+          sub={period}
+          icon={ShieldAlert}
+          tone="warning"
+          spark={sparks.reportable}
+        />
+        <MetricCard
+          label="Injured parties"
+          value={stats.injured}
+          sub={period}
+          icon={UserRound}
+          spark={sparks.injured}
+        />
       </div>
 
-      {/* 11.2 RIDDOR / HSA alert banner */}
-      <RiddorAlertBanner flags={alertFlags} hasOverdueFlag={hasOverdueFlag} />
+      {/* Activity */}
+      <ActivityChart data={data.activity} />
 
-      {/* 11.5 Trend chart + 11.4 Overdue actions */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <IncidentTrendChart data={data.trend} />
-        </div>
-
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Overdue actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {overdueActions.length === 0 ? (
-              <EmptyState
-                title="No overdue actions."
-                description="All follow-up is on track."
-                className="border-0 bg-transparent p-6"
-              />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="px-0">Incident</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Assigned to</TableHead>
-                    <TableHead>Due</TableHead>
-                    <TableHead className="text-right">Overdue</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {overdueActions.map((action) => {
-                    const daysOverdue = Math.abs(daysUntil(action.dueDate))
-                    return (
-                      <TableRow key={action.id}>
-                        <TableCell className="px-0 align-top">
-                          <Link
-                            href={`/flagly/incidents/${action.incident.id}`}
-                            className="font-mono text-sm font-medium text-foreground hover:text-primary hover:underline"
-                          >
-                            {action.incident.reference}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="max-w-[14rem] align-top">
-                          <span className="line-clamp-2 text-sm">
-                            {action.description}
-                          </span>
-                        </TableCell>
-                        <TableCell className="align-top text-sm">
-                          {action.assignedTo}
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <span className="font-mono text-sm text-severity-critical">
-                            {formatDate(action.dueDate)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="align-top text-right text-sm font-medium tabular-nums">
-                          {daysOverdue}d
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+      {/* Distributions */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DistributionPanel
+          title="Top locations"
+          rows={data.locations}
+          gradient="warm"
+          icon={MapPin}
+          iconTint="bg-severity-reportable-bg text-severity-reportable"
+          emptyText="No incidents in this period."
+        />
+        <DistributionPanel
+          title="Incidents by type"
+          rows={data.types.map((t) => ({
+            label: INCIDENT_TYPE_LABELS[t.type],
+            count: t.count,
+          }))}
+          gradient="cool"
+          icon={Tag}
+          emptyText="No incidents in this period."
+        />
       </div>
 
-      {/* 11.3 Active incidents panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active incidents</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {activeIncidents.length === 0 ? (
-            <EmptyState
-              title="No active incidents."
-              className="border-0 bg-transparent p-6"
-            />
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Occurred</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Follow-up</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeIncidents.map((incident) => (
-                    <TableRow key={incident.id}>
-                      <TableCell>
-                        <Link
-                          href={`/flagly/incidents/${incident.id}`}
-                          className="font-mono text-sm font-medium text-foreground hover:text-primary hover:underline"
-                        >
-                          {incident.reference}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <IncidentTypeBadge type={incident.type} />
-                      </TableCell>
-                      <TableCell>
-                        <IncidentSeverityBadge severity={incident.severity} />
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {incident.location}
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {formatDate(incident.occurredAt)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <IncidentStatusBadge status={incident.status} />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {incident.openActionCount > 0
-                          ? `${incident.openActionCount} open`
-                          : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Link
-                href="/flagly/incidents"
-                className={cn(
-                  "inline-flex items-center gap-1 text-sm font-medium text-primary",
-                  "underline-offset-4 hover:underline"
-                )}
-              >
-                View all incidents
-                <ArrowRight className="size-4" />
-              </Link>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {/* Leaderboards */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <LeaderboardPanel
+          title="Most active reporters"
+          rows={data.reporters.map((r, i) => ({
+            name: r.name,
+            sub: `${r.count} ${pluralize(r.count, "incident")} reported`,
+            rank: i + 1,
+            trend: r.trend,
+          }))}
+          emptyText="No reports in this period."
+        />
+        <LeaderboardPanel
+          title="Open actions by assignee"
+          rows={data.assignees.map((a, i) => ({
+            name: a.name,
+            sub:
+              a.overdue > 0
+                ? `${a.open} open · ${a.overdue} overdue`
+                : `${a.open} open`,
+            rank: i + 1,
+            trend: a.overdue > 0 ? "down" : "up",
+          }))}
+          emptyText="No outstanding actions."
+        />
+      </div>
     </div>
   )
 }
