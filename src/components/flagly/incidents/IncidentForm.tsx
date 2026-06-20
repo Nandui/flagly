@@ -40,6 +40,7 @@ import {
   SEVERITY_LABELS,
   SEVERITY_ORDER,
   TREATMENT_OPTIONS,
+  pluralize,
   severityBorderClass,
   toDateInputValue,
   toTimeInputValue,
@@ -119,6 +120,18 @@ function Section({
   )
 }
 
+// Maps a validation key to the DOM id of its control, so the error summary and
+// failed submits can scroll to / focus the offending field.
+const ERROR_FIELD_IDS: Record<string, string> = {
+  centerId: "centre",
+  areaId: "area",
+  subAreaId: "subarea",
+  occurredAt: "occurredOn",
+  description: "description",
+  reportedById: "reportedBy",
+  type: "type",
+}
+
 export function IncidentForm({
   mode,
   centers,
@@ -174,6 +187,54 @@ export function IncidentForm({
   const [witnesses, setWitnesses] = React.useState<WitnessRow[]>([])
 
   const isEdit = mode === "edit"
+
+  // ── Inline validation ──
+  const [errors, setErrors] = React.useState<Record<string, string>>({})
+
+  function clearError(key: string) {
+    setErrors((prev) => {
+      if (!prev[key]) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
+
+  function focusField(key: string) {
+    const el = document.getElementById(ERROR_FIELD_IDS[key] ?? key)
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
+      ;(el as HTMLElement).focus?.()
+    }
+  }
+
+  function validate(asDraft: boolean): Record<string, string> {
+    const e: Record<string, string> = {}
+    if (!centerId) e.centerId = "Select a centre."
+    if (!areaId) e.areaId = "Select an area."
+    if (!buildOccurredAt()) e.occurredAt = "Enter a valid date and time."
+    if (!asDraft && description.trim().length < 10)
+      e.description = "Add a fuller description (at least 10 characters)."
+    if (isAdmin && !reportedById) e.reportedById = "Select a reporter."
+    return e
+  }
+
+  function applyServerErrors(result: {
+    error: string
+    fieldErrors?: Record<string, string[]>
+  }) {
+    if (result.fieldErrors && Object.keys(result.fieldErrors).length > 0) {
+      const e: Record<string, string> = {}
+      for (const [k, msgs] of Object.entries(result.fieldErrors)) {
+        if (msgs && msgs.length) e[k] = msgs[0]
+      }
+      setErrors(e)
+      const first = Object.keys(e)[0]
+      if (first) focusField(first)
+    } else {
+      toast.error(result.error)
+    }
+  }
 
   // Areas are per-centre; show only those for the selected centre, and the
   // sub-areas of the selected area.
@@ -249,16 +310,10 @@ export function IncidentForm({
   }
 
   function handleCreate(asDraft: boolean) {
-    if (!centerId) {
-      toast.error("Please select a centre.")
-      return
-    }
-    if (!areaId) {
-      toast.error("Please select an area.")
-      return
-    }
-    if (!buildOccurredAt()) {
-      toast.error("Please enter a valid date and time for the incident.")
+    const e = validate(asDraft)
+    setErrors(e)
+    if (Object.keys(e).length > 0) {
+      focusField(Object.keys(e)[0])
       return
     }
     setSubmittingDraft(asDraft)
@@ -272,19 +327,17 @@ export function IncidentForm({
         toast.success(asDraft ? "Draft saved." : "Incident report submitted.")
         router.push(`/flagly/incidents/${result.data.id}`)
       } else {
-        toast.error(result.error)
+        applyServerErrors(result)
       }
     })
   }
 
   function handleUpdate() {
     if (!initial) return
-    if (!areaId) {
-      toast.error("Please select an area.")
-      return
-    }
-    if (!buildOccurredAt()) {
-      toast.error("Please enter a valid date and time for the incident.")
+    const e = validate(false)
+    setErrors(e)
+    if (Object.keys(e).length > 0) {
+      focusField(Object.keys(e)[0])
       return
     }
     startTransition(async () => {
@@ -293,7 +346,7 @@ export function IncidentForm({
         toast.success("Incident updated.")
         router.push(`/flagly/incidents/${initial.id}`)
       } else {
-        toast.error(result.error)
+        applyServerErrors(result)
       }
     })
   }
@@ -303,12 +356,50 @@ export function IncidentForm({
       data-incident-form
       className="mx-auto w-full max-w-[760px] space-y-5 pb-28 sm:pb-6"
     >
+      {/* Error summary */}
+      {Object.keys(errors).length > 0 ? (
+        <div
+          role="alert"
+          className="rounded-[var(--radius)] border border-severity-critical-line bg-severity-critical-bg p-4 text-sm text-severity-critical"
+        >
+          <p className="font-semibold">
+            Please fix {Object.keys(errors).length}{" "}
+            {pluralize(Object.keys(errors).length, "issue")} before submitting:
+          </p>
+          <ul className="mt-1.5 space-y-1">
+            {Object.entries(errors).map(([k, m]) => (
+              <li key={k}>
+                <button
+                  type="button"
+                  onClick={() => focusField(k)}
+                  className="text-left underline underline-offset-2 hover:opacity-80"
+                >
+                  {m}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {/* Section 1 — Incident Details */}
       <Section number={1} title="Incident details">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Centre" htmlFor="centre" required className="sm:col-span-2">
-            <Select value={centerId} onValueChange={setCenterId}>
-              <SelectTrigger id="centre">
+          <Field
+            label="Centre"
+            htmlFor="centre"
+            required
+            className="sm:col-span-2"
+            error={errors.centerId}
+          >
+            <Select
+              value={centerId}
+              onValueChange={(v) => {
+                setCenterId(v)
+                clearError("centerId")
+              }}
+            >
+              <SelectTrigger id="centre" aria-invalid={!!errors.centerId}>
                 <SelectValue placeholder="Select centre" />
               </SelectTrigger>
               <SelectContent>
@@ -337,20 +428,33 @@ export function IncidentForm({
             </Select>
           </Field>
 
-          <Field label="Occurred on" htmlFor="occurredOn" required>
+          <Field
+            label="Occurred on"
+            htmlFor="occurredOn"
+            required
+            error={errors.occurredAt}
+          >
             <Input
               id="occurredOn"
               type="date"
+              aria-invalid={!!errors.occurredAt}
               value={occurredOn}
-              onChange={(e) => setOccurredOn(e.target.value)}
+              onChange={(e) => {
+                setOccurredOn(e.target.value)
+                clearError("occurredAt")
+              }}
             />
           </Field>
           <Field label="Occurred at" htmlFor="occurredTime" required>
             <Input
               id="occurredTime"
               type="time"
+              aria-invalid={!!errors.occurredAt}
               value={occurredTime}
-              onChange={(e) => setOccurredTime(e.target.value)}
+              onChange={(e) => {
+                setOccurredTime(e.target.value)
+                clearError("occurredAt")
+              }}
             />
           </Field>
 
@@ -358,6 +462,7 @@ export function IncidentForm({
             label="Area"
             htmlFor="area"
             required
+            error={errors.areaId}
             hint={
               centerId && centerAreas.length === 0
                 ? "No areas defined for this centre yet — add them under Admin → Areas."
@@ -369,10 +474,11 @@ export function IncidentForm({
               onValueChange={(v) => {
                 setAreaId(v)
                 setSubAreaId("")
+                clearError("areaId")
               }}
               disabled={!centerId || centerAreas.length === 0}
             >
-              <SelectTrigger id="area">
+              <SelectTrigger id="area" aria-invalid={!!errors.areaId}>
                 <SelectValue
                   placeholder={
                     centerAreas.length === 0 ? "No areas available" : "Select area"
@@ -419,13 +525,22 @@ export function IncidentForm({
 
       {/* Section 2 — Description */}
       <Section number={2} title="Description">
-        <Field label="What happened?" htmlFor="description" required>
+        <Field
+          label="What happened?"
+          htmlFor="description"
+          required
+          error={errors.description}
+        >
           <Textarea
             id="description"
             rows={5}
             maxLength={5000}
+            aria-invalid={!!errors.description}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value)
+              clearError("description")
+            }}
             placeholder="Describe the incident in full. Include what happened, in what sequence, and any relevant conditions."
           />
         </Field>
@@ -888,14 +1003,21 @@ export function IncidentForm({
             label="Reporter"
             htmlFor="reportedBy"
             required
+            error={errors.reportedById}
             hint={
               initial && !initial.reportedById
                 ? `Currently recorded as “${reportedByName}”. Choose a user to attribute this report.`
                 : "Defaults to you. As an admin you can attribute this report to another user."
             }
           >
-            <Select value={reportedById} onValueChange={setReportedById}>
-              <SelectTrigger id="reportedBy">
+            <Select
+              value={reportedById}
+              onValueChange={(v) => {
+                setReportedById(v)
+                clearError("reportedById")
+              }}
+            >
+              <SelectTrigger id="reportedBy" aria-invalid={!!errors.reportedById}>
                 <SelectValue placeholder="Select reporter" />
               </SelectTrigger>
               <SelectContent>
