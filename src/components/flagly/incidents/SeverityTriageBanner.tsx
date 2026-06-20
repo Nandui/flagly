@@ -28,15 +28,14 @@ export function SeverityTriageBanner({
       <TriangleAlert className="mt-0.5 size-5 shrink-0" />
       <div className="space-y-2 text-sm">
         <p className="font-semibold">
-          This incident may require authority notification
+          {critical
+            ? "This is a critical incident"
+            : "This is a reportable incident"}
         </p>
         <p className="leading-relaxed">
-          HSA Ireland: submit via the BeSafe portal within 7–30 days. RIDDOR
-          (NI/UK): notify within 10–15 days depending on incident type.
-        </p>
-        <p className="leading-relaxed">
-          You will be prompted to set up a RIDDOR / HSA flag after submitting this
-          report.
+          {critical
+            ? "Fatalities and life-threatening injuries should be escalated to senior management immediately."
+            : "Reportable incidents should be escalated for management review and any required external notification."}
         </p>
       </div>
     </div>

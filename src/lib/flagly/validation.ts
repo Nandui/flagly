@@ -29,6 +29,30 @@ export const updateCenterSchema = createCenterSchema.extend({
   id: z.string().cuid(),
 })
 
+// ─── Area / sub-area management (admin) ──────────────────────────────────────
+
+const areaNameField = z.string().trim().min(1, "Enter a name").max(120)
+
+export const createAreaSchema = z.object({
+  centerId: z.string().cuid(),
+  name: areaNameField,
+})
+
+export const updateAreaSchema = z.object({
+  id: z.string().cuid(),
+  name: areaNameField,
+})
+
+export const createSubAreaSchema = z.object({
+  areaId: z.string().cuid(),
+  name: areaNameField,
+})
+
+export const updateSubAreaSchema = z.object({
+  id: z.string().cuid(),
+  name: areaNameField,
+})
+
 // ─── Shared item schemas (used both nested-at-create and standalone-add) ─────────
 
 const witnessBase = z.object({
@@ -80,8 +104,8 @@ export const createIncidentSchema = z.object({
   ]),
   severity: z.enum(["MINOR", "SIGNIFICANT", "REPORTABLE", "CRITICAL"]),
   occurredAt: z.string().datetime(),
-  location: z.string().min(1).max(200),
-  locationDetail: z.string().max(500).optional(),
+  areaId: z.string().cuid(),
+  subAreaId: z.string().cuid().optional(),
   description: z.string().min(10).max(5000),
   immediateAction: z.string().max(2000).optional(),
   reportedBy: z.string().min(1).max(200),
@@ -123,8 +147,8 @@ export const updateIncidentSchema = z.object({
   ]),
   severity: z.enum(["MINOR", "SIGNIFICANT", "REPORTABLE", "CRITICAL"]),
   occurredAt: z.string().datetime(),
-  location: z.string().min(1).max(200),
-  locationDetail: z.string().max(500).optional(),
+  areaId: z.string().cuid(),
+  subAreaId: z.string().cuid().optional(),
   description: z.string().min(10).max(5000),
   immediateAction: z.string().max(2000).optional(),
   reportedBy: z.string().min(1).max(200),
@@ -171,25 +195,6 @@ export const setActionStatusSchema = z.object({
   completedBy: z.string().max(200).optional(),
 })
 
-// ─── RIDDOR / HSA ──────────────────────────────────────────────────────────────
-
-export const createRiddorFlagSchema = z.object({
-  incidentId: z.string().cuid(),
-  authority: z.enum(["HSA_IRELAND", "HSENI", "HSE_UK"]),
-  classification: z.string().min(1).max(200),
-  reportingDeadline: z.string().datetime(),
-  notes: z.string().max(2000).default(""),
-})
-
-export const markReportedSchema = z.object({
-  riddorFlagId: z.string().cuid(),
-  reportedAt: z.string().date(),
-  referenceNumber: z.string().max(100).optional(),
-  reportedBy: z.string().min(1).max(200),
-  method: z.string().min(1).max(200),
-  notes: z.string().max(2000).default(""),
-})
-
 // ─── Close incident ────────────────────────────────────────────────────────────
 
 export const closeIncidentSchema = z.object({
@@ -208,6 +213,4 @@ export type FollowUpInput = z.infer<typeof followUpBase>
 export type AddWitnessInput = z.infer<typeof addWitnessSchema>
 export type AddInjuredPartyInput = z.infer<typeof addInjuredPartySchema>
 export type AddFollowUpActionInput = z.infer<typeof addFollowUpActionSchema>
-export type CreateRiddorFlagInput = z.infer<typeof createRiddorFlagSchema>
-export type MarkReportedInput = z.infer<typeof markReportedSchema>
 export type CloseIncidentInput = z.infer<typeof closeIncidentSchema>

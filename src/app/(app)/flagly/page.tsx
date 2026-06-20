@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import {
   Activity,
-  AlertTriangle,
   Clock,
   FileWarning,
   MapPin,
@@ -26,7 +25,6 @@ import { MetricCard } from "@/components/flagly/shared/MetricCard"
 import { ActivityChart } from "@/components/flagly/dashboard/ActivityChart"
 import { DistributionPanel } from "@/components/flagly/dashboard/DistributionPanel"
 import { LeaderboardPanel } from "@/components/flagly/dashboard/LeaderboardPanel"
-import { RiddorAlertBanner } from "@/components/flagly/dashboard/RiddorAlertBanner"
 
 export const metadata: Metadata = { title: "Dashboard" }
 
@@ -73,10 +71,8 @@ export default async function DashboardPage({
         type={typeFilter}
       />
 
-      <RiddorAlertBanner flags={data.alertFlags} hasOverdueFlag={data.hasOverdueFlag} />
-
       {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <MetricCard
           label="Incidents"
           value={stats.incidents}
@@ -101,14 +97,6 @@ export default async function DashboardPage({
           href="/flagly/actions"
         />
         <MetricCard
-          label="RIDDOR / HSA pending"
-          value={stats.riddorPending}
-          sub="right now"
-          icon={AlertTriangle}
-          tone="warning"
-          href="/flagly/riddor"
-        />
-        <MetricCard
           label="Reportable"
           value={stats.reportable}
           sub={period}
@@ -131,7 +119,7 @@ export default async function DashboardPage({
       {/* Distributions */}
       <div className="grid gap-4 lg:grid-cols-2">
         <DistributionPanel
-          title="Top locations"
+          title="Top areas"
           rows={data.locations}
           gradient="warm"
           icon={MapPin}

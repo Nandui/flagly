@@ -46,6 +46,7 @@ import {
 } from "@/lib/flagly/utils"
 import { createIncident, updateIncident } from "@/lib/flagly/actions/incidents"
 import type { CenterSummary } from "@/lib/centrely/active-center"
+import type { AreaOption } from "@/lib/flagly/types"
 
 type InjuredRow = {
   key: string
@@ -84,8 +85,8 @@ export type IncidentFormInitial = {
   type: string
   severity: IncidentSeverity
   occurredAt: string | Date
-  location: string
-  locationDetail: string | null
+  areaId: string | null
+  subAreaId: string | null
   description: string
   immediateAction: string | null
   reportedBy: string
@@ -127,12 +128,14 @@ function Section({
 export function IncidentForm({
   mode,
   centers,
+  areas,
   defaultCenterId,
   defaultReportedBy,
   initial,
 }: {
   mode: "create" | "edit"
   centers: CenterSummary[]
+  areas: AreaOption[]
   defaultCenterId: string | null
   defaultReportedBy: string
   initial?: IncidentFormInitial
@@ -156,10 +159,8 @@ export function IncidentForm({
   const [occurredTime, setOccurredTime] = React.useState(
     toTimeInputValue(initialDate)
   )
-  const [location, setLocation] = React.useState(initial?.location ?? "")
-  const [locationDetail, setLocationDetail] = React.useState(
-    initial?.locationDetail ?? ""
-  )
+  const [areaId, setAreaId] = React.useState(initial?.areaId ?? "")
+  const [subAreaId, setSubAreaId] = React.useState(initial?.subAreaId ?? "")
   const [description, setDescription] = React.useState(initial?.description ?? "")
   const [immediateAction, setImmediateAction] = React.useState(
     initial?.immediateAction ?? ""
@@ -173,6 +174,31 @@ export function IncidentForm({
   const [actions, setActions] = React.useState<ActionRow[]>([])
 
   const isEdit = mode === "edit"
+
+  // Areas are per-centre; show only those for the selected centre, and the
+  // sub-areas of the selected area.
+  const centerAreas = React.useMemo(
+    () => areas.filter((a) => a.centerId === centerId),
+    [areas, centerId]
+  )
+  const subAreas = React.useMemo(
+    () => centerAreas.find((a) => a.id === areaId)?.subAreas ?? [],
+    [centerAreas, areaId]
+  )
+
+  // Keep the cascading selects consistent when the centre or area changes.
+  React.useEffect(() => {
+    if (areaId && !centerAreas.some((a) => a.id === areaId)) {
+      setAreaId("")
+      setSubAreaId("")
+    }
+  }, [centerAreas, areaId])
+
+  React.useEffect(() => {
+    if (subAreaId && !subAreas.some((s) => s.id === subAreaId)) {
+      setSubAreaId("")
+    }
+  }, [subAreas, subAreaId])
 
   function buildOccurredAt(): string | null {
     if (!occurredOn) return null
@@ -188,8 +214,8 @@ export function IncidentForm({
       type,
       severity,
       occurredAt: buildOccurredAt() ?? "",
-      location: location.trim(),
-      locationDetail: locationDetail.trim() || undefined,
+      areaId,
+      subAreaId: subAreaId || undefined,
       description,
       immediateAction: immediateAction.trim() || undefined,
       reportedBy: reportedBy.trim(),
@@ -232,6 +258,10 @@ export function IncidentForm({
       toast.error("Please select a centre.")
       return
     }
+    if (!areaId) {
+      toast.error("Please select an area.")
+      return
+    }
     if (!buildOccurredAt()) {
       toast.error("Please enter a valid date and time for the incident.")
       return
@@ -245,8 +275,7 @@ export function IncidentForm({
       })
       if (result.ok) {
         toast.success(asDraft ? "Draft saved." : "Incident report submitted.")
-        const suffix = result.data.needsRiddor ? "?tab=riddor" : ""
-        router.push(`/flagly/incidents/${result.data.id}${suffix}`)
+        router.push(`/flagly/incidents/${result.data.id}`)
       } else {
         toast.error(result.error)
       }
@@ -255,6 +284,10 @@ export function IncidentForm({
 
   function handleUpdate() {
     if (!initial) return
+    if (!areaId) {
+      toast.error("Please select an area.")
+      return
+    }
     if (!buildOccurredAt()) {
       toast.error("Please enter a valid date and time for the incident.")
       return
@@ -323,21 +356,65 @@ export function IncidentForm({
             />
           </Field>
 
-          <Field label="Location" htmlFor="location" required>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Main pool, Gym floor"
-            />
+          <Field
+            label="Area"
+            htmlFor="area"
+            required
+            hint={
+              centerId && centerAreas.length === 0
+                ? "No areas defined for this centre yet — add them under Admin → Areas."
+                : undefined
+            }
+          >
+            <Select
+              value={areaId}
+              onValueChange={(v) => {
+                setAreaId(v)
+                setSubAreaId("")
+              }}
+              disabled={!centerId || centerAreas.length === 0}
+            >
+              <SelectTrigger id="area">
+                <SelectValue
+                  placeholder={
+                    centerAreas.length === 0 ? "No areas available" : "Select area"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {centerAreas.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Location detail" htmlFor="locationDetail">
-            <Input
-              id="locationDetail"
-              value={locationDetail}
-              onChange={(e) => setLocationDetail(e.target.value)}
-              placeholder="e.g. Deep end, lane 3"
-            />
+          <Field label="Sub-area" htmlFor="subarea" hint="Optional">
+            <Select
+              value={subAreaId}
+              onValueChange={setSubAreaId}
+              disabled={!areaId || subAreas.length === 0}
+            >
+              <SelectTrigger id="subarea">
+                <SelectValue
+                  placeholder={
+                    !areaId
+                      ? "Select an area first"
+                      : subAreas.length === 0
+                        ? "No sub-areas"
+                        : "Select sub-area"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {subAreas.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </div>
       </Section>
@@ -397,18 +474,15 @@ export function IncidentForm({
         <Collapsible>
           <CollapsibleTrigger className="group flex items-center gap-1.5 text-sm font-medium text-primary">
             <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-            What qualifies as Reportable?
+            What counts as Reportable?
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-2 rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
             <p>
-              <span className="font-medium text-foreground">HSA Ireland:</span>{" "}
-              fatalities, dangerous occurrences, and injuries causing more than 3
-              days&apos; absence from normal work.
-            </p>
-            <p>
-              <span className="font-medium text-foreground">RIDDOR (NI/UK):</span>{" "}
-              fatalities, specified injuries, over-7-day injuries, and dangerous
-              occurrences.
+              Mark an incident{" "}
+              <span className="font-medium text-foreground">Reportable</span> when it
+              is serious enough to need escalation beyond the centre — for example a
+              major or lost-time injury, or a dangerous occurrence — so management
+              can review it and arrange any external notification.
             </p>
           </CollapsibleContent>
         </Collapsible>

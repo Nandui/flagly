@@ -24,13 +24,38 @@ import {
 
 const MAX_REFERENCE_RETRIES = 5
 
-function needsRiddor(severity: string): boolean {
-  return severity === "REPORTABLE" || severity === "CRITICAL"
+// Resolve the chosen area/sub-area to validated ids + denormalised names, or an
+// error string if they don't belong to the given centre.
+async function resolveLocation(
+  centerId: string,
+  areaId: string,
+  subAreaId: string | undefined
+): Promise<
+  | { ok: true; location: string; locationDetail: string | null; subAreaId: string | null }
+  | { ok: false; error: string }
+> {
+  const area = await prisma.area.findFirst({
+    where: { id: areaId, centerId },
+    select: { name: true },
+  })
+  if (!area) return { ok: false, error: "Select a valid area for this centre." }
+
+  if (!subAreaId) {
+    return { ok: true, location: area.name, locationDetail: null, subAreaId: null }
+  }
+
+  const sub = await prisma.subArea.findFirst({
+    where: { id: subAreaId, areaId },
+    select: { name: true },
+  })
+  if (!sub) return { ok: false, error: "Select a valid sub-area for this area." }
+
+  return { ok: true, location: area.name, locationDetail: sub.name, subAreaId }
 }
 
 export async function createIncident(
   raw: unknown
-): Promise<ActionResult<{ id: string; needsRiddor: boolean; status: string }>> {
+): Promise<ActionResult<{ id: string; status: string }>> {
   const user = await getCurrentUser()
   if (!user) return fail("You must be signed in to report an incident.")
 
@@ -43,7 +68,9 @@ export async function createIncident(
   if (!parsed.success) return fromZodError(parsed.error)
   const d = parsed.data
   const status = isDraft ? "DRAFT" : "OPEN"
-  const riddorRequired = !isDraft && needsRiddor(d.severity)
+
+  const loc = await resolveLocation(d.centerId, d.areaId, d.subAreaId)
+  if (!loc.ok) return fail(loc.error)
 
   for (let attempt = 0; attempt < MAX_REFERENCE_RETRIES; attempt++) {
     try {
@@ -57,29 +84,26 @@ export async function createIncident(
             status,
             severity: d.severity,
             occurredAt: new Date(d.occurredAt),
-            location: d.location,
-            locationDetail: d.locationDetail || null,
+            areaId: d.areaId,
+            subAreaId: loc.subAreaId,
+            location: loc.location,
+            locationDetail: loc.locationDetail,
             description: d.description,
             immediateAction: d.immediateAction || null,
             reportedBy: d.reportedBy,
             reportedById: user.id,
-            riddorRequired,
             witnessCount: d.witnesses.length,
             injuredCount: d.injuredParties.length,
             witnesses: { create: d.witnesses.map(mapWitnessCreate) },
             injuredParties: { create: d.injuredParties.map(mapInjuredCreate) },
             followUpActions: { create: d.followUpActions.map(mapFollowUpCreate) },
           },
-          select: { id: true, riddorRequired: true, status: true },
+          select: { id: true, status: true },
         })
       })
 
       revalidatePath("/flagly", "layout")
-      return ok({
-        id: incident.id,
-        needsRiddor: incident.riddorRequired,
-        status: incident.status,
-      })
+      return ok({ id: incident.id, status: incident.status })
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -107,14 +131,12 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
 
   const existing = await prisma.incident.findUnique({
     where: { id: d.id },
-    select: { status: true, riddorRequired: true },
+    select: { status: true },
   })
   if (!existing) return fail("Incident not found.")
 
-  // Don't downgrade an existing RIDDOR requirement; promote it if severity rose.
-  const riddorRequired =
-    existing.riddorRequired ||
-    (existing.status !== "DRAFT" && needsRiddor(d.severity))
+  const loc = await resolveLocation(d.centerId, d.areaId, d.subAreaId)
+  if (!loc.ok) return fail(loc.error)
 
   try {
     await prisma.incident.update({
@@ -124,12 +146,13 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
         type: d.type,
         severity: d.severity,
         occurredAt: new Date(d.occurredAt),
-        location: d.location,
-        locationDetail: d.locationDetail || null,
+        areaId: d.areaId,
+        subAreaId: loc.subAreaId,
+        location: loc.location,
+        locationDetail: loc.locationDetail,
         description: d.description,
         immediateAction: d.immediateAction || null,
         reportedBy: d.reportedBy,
-        riddorRequired,
       },
     })
   } catch (error) {
@@ -143,7 +166,7 @@ export async function updateIncident(raw: unknown): Promise<ActionResult<{ id: s
 
 export async function submitDraft(
   raw: unknown
-): Promise<ActionResult<{ id: string; needsRiddor: boolean }>> {
+): Promise<ActionResult<{ id: string }>> {
   const user = await getCurrentUser()
   if (!user) return fail("You must be signed in.")
 
@@ -152,7 +175,7 @@ export async function submitDraft(
 
   const incident = await prisma.incident.findUnique({
     where: { id: parsed.data.incidentId },
-    select: { id: true, status: true, severity: true, description: true, location: true },
+    select: { id: true, status: true, description: true, location: true },
   })
   if (!incident) return fail("Incident not found.")
   if (incident.status !== "DRAFT") return fail("This incident has already been submitted.")
@@ -161,15 +184,13 @@ export async function submitDraft(
   }
   if (!incident.location.trim()) return fail("A location is required before submitting.")
 
-  const riddorRequired = needsRiddor(incident.severity)
-
   await prisma.incident.update({
     where: { id: incident.id },
-    data: { status: "OPEN", riddorRequired },
+    data: { status: "OPEN" },
   })
 
   revalidatePath("/flagly", "layout")
-  return ok({ id: incident.id, needsRiddor: riddorRequired })
+  return ok({ id: incident.id })
 }
 
 export async function setIncidentStatus(

@@ -9,7 +9,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import {
-  AlertTriangle,
   CheckCircle2,
   ChevronDown,
   FileSpreadsheet,
@@ -55,7 +54,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Switch } from "@/components/ui/switch"
 import {
   Table,
   TableBody,
@@ -64,12 +62,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { EmptyState } from "@/components/flagly/shared/EmptyState"
 import { ExportMenu } from "@/components/flagly/shared/ExportMenu"
 import { IncidentSeverityBadge } from "@/components/flagly/incidents/IncidentSeverityBadge"
@@ -107,40 +99,6 @@ function ActionsCell({ row }: { row: IncidentListItem }) {
     )
   }
   return <span className="font-medium">{row.openActionCount} open</span>
-}
-
-function RiddorCell({ row }: { row: IncidentListItem }) {
-  if (!row.riddorRequired) {
-    return <span className="text-muted-foreground">—</span>
-  }
-  if (row.riddorStatus === "REPORTED") {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex text-status-closed">
-              <CheckCircle2 className="size-4" />
-              <span className="sr-only">Reported</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>Authority notification reported</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )
-  }
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex text-severity-critical">
-            <AlertTriangle className="size-4" />
-            <span className="sr-only">Authority notification required</span>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Authority notification required</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  )
 }
 
 const columns: ColumnDef<IncidentListItem>[] = [
@@ -203,11 +161,6 @@ const columns: ColumnDef<IncidentListItem>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => <ActionsCell row={row.original} />,
-  },
-  {
-    id: "riddor",
-    header: "RIDDOR",
-    cell: ({ row }) => <RiddorCell row={row.original} />,
   },
   {
     accessorKey: "reportedBy",
@@ -278,7 +231,6 @@ export function IncidentTable({
     new Set()
   )
   const [statuses, setStatuses] = React.useState<Set<IncidentStatus>>(new Set())
-  const [riddorPendingOnly, setRiddorPendingOnly] = React.useState(false)
   const [fromDate, setFromDate] = React.useState("")
   const [toDate, setToDate] = React.useState("")
 
@@ -309,9 +261,6 @@ export function IncidentTable({
       if (types.size > 0 && !types.has(row.type)) return false
       if (severities.size > 0 && !severities.has(row.severity)) return false
       if (statuses.size > 0 && !statuses.has(row.status)) return false
-      if (riddorPendingOnly) {
-        if (!(row.riddorRequired && row.riddorStatus !== "REPORTED")) return false
-      }
       const occurred = new Date(row.occurredAt)
       if (from && occurred < from) return false
       if (to && occurred > to) return false
@@ -324,7 +273,6 @@ export function IncidentTable({
     types,
     severities,
     statuses,
-    riddorPendingOnly,
     fromDate,
     toDate,
   ])
@@ -341,7 +289,6 @@ export function IncidentTable({
     types.size > 0 ||
     severities.size > 0 ||
     statuses.size > 0 ||
-    riddorPendingOnly ||
     fromDate.length > 0 ||
     toDate.length > 0
 
@@ -351,7 +298,6 @@ export function IncidentTable({
     setTypes(new Set())
     setSeverities(new Set())
     setStatuses(new Set())
-    setRiddorPendingOnly(false)
     setFromDate("")
     setToDate("")
   }
@@ -465,15 +411,6 @@ export function IncidentTable({
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <label className="flex items-center gap-2 text-sm">
-            <Switch
-              checked={riddorPendingOnly}
-              onCheckedChange={setRiddorPendingOnly}
-              aria-label="RIDDOR pending only"
-            />
-            RIDDOR pending only
-          </label>
-
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Occurred</span>
             <Input

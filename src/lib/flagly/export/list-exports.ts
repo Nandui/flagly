@@ -2,7 +2,6 @@ import type { IncidentListItem } from "@/lib/flagly/types"
 import {
   INCIDENT_STATUS_LABELS,
   INCIDENT_TYPE_LABELS,
-  RIDDOR_STATUS_LABELS,
   SEVERITY_LABELS,
   formatDateTime,
 } from "@/lib/flagly/utils"
@@ -21,7 +20,6 @@ const COLUMNS = [
   "Status",
   "Injured",
   "Actions",
-  "RIDDOR",
   "Reporter",
 ] as const
 
@@ -29,14 +27,6 @@ function actionsLabel(row: IncidentListItem): string {
   if (row.totalActionCount === 0) return "—"
   if (row.openActionCount === 0) return "Complete"
   return `${row.openActionCount} open`
-}
-
-function riddorLabel(row: IncidentListItem): string {
-  if (!row.riddorRequired) return "Not required"
-  if (row.riddorStatus === "REPORTED") return "Reported"
-  return row.riddorStatus
-    ? `Pending (${RIDDOR_STATUS_LABELS[row.riddorStatus]})`
-    : "Pending"
 }
 
 function locationLabel(row: IncidentListItem): string {
@@ -56,7 +46,6 @@ function toRecord(row: IncidentListItem): Record<(typeof COLUMNS)[number], strin
     Status: INCIDENT_STATUS_LABELS[row.status],
     Injured: row.injuredCount,
     Actions: actionsLabel(row),
-    RIDDOR: riddorLabel(row),
     Reporter: row.reportedBy,
   }
 }
@@ -84,7 +73,6 @@ export async function exportIncidentsToExcel(rows: IncidentListItem[]): Promise<
     { wch: 18 }, // Status
     { wch: 8 }, // Injured
     { wch: 12 }, // Actions
-    { wch: 22 }, // RIDDOR
     { wch: 20 }, // Reporter
   ]
 
@@ -132,10 +120,9 @@ export async function exportIncidentsToPdf(rows: IncidentListItem[]): Promise<vo
     "Location",
     "Occurred",
     "Status",
-    "RIDDOR",
     "Reporter",
   ]
-  const widths = [70, 70, 60, 90, 110, 90, 80, 90, 80]
+  const widths = [70, 70, 64, 96, 120, 96, 84, 92]
   const startX = margin
   let y = margin + 48
   const rowHeight = 18
@@ -189,7 +176,6 @@ export async function exportIncidentsToPdf(rows: IncidentListItem[]): Promise<vo
       record.Location,
       record.Occurred,
       record.Status,
-      record.RIDDOR,
       record.Reporter,
     ].map(String)
 

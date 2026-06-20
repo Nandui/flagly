@@ -66,8 +66,9 @@ v1 ships with the first-run Admin bootstrap.
 
 ## Optional: demo data
 
-For a populated demo (8 incidents, a pending HSA flag, overdue actions), run the
-seed against the database instead of using first-run setup:
+For a populated demo (8 incidents across two centres with areas/sub-areas, plus
+overdue actions), run the seed against the database instead of using first-run
+setup:
 
 ```bash
 DATABASE_URL="<neon-pooled-url>" DATABASE_URL_UNPOOLED="<neon-direct-url>" npm run db:seed

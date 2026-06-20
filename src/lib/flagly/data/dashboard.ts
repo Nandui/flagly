@@ -12,12 +12,10 @@ import {
 import type { IncidentType, Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
-import { sweepOverdueActions, sweepOverdueRiddor } from "@/lib/flagly/data/incidents"
-import { daysUntil } from "@/lib/flagly/utils"
+import { sweepOverdueActions } from "@/lib/flagly/data/incidents"
 import type {
   ActivityPoint,
   AssigneeRank,
-  DashboardAlertFlag,
   DashboardData,
   DistributionItem,
   ReporterRank,
@@ -69,7 +67,7 @@ export async function getDashboardData(
   centerId: string,
   opts: { timeframe: Timeframe; type?: IncidentType | null }
 ): Promise<DashboardData> {
-  await Promise.all([sweepOverdueActions(centerId), sweepOverdueRiddor()])
+  await sweepOverdueActions(centerId)
 
   const { timeframe, type } = opts
   const win = resolveWindow(timeframe)
@@ -88,10 +86,8 @@ export async function getDashboardData(
     twelveMoIncidents,
     open,
     overdueActions,
-    riddorPending,
     prevReporters,
     actionRows,
-    alertFlagRecords,
   ] = await Promise.all([
     prisma.incident.findMany({
       where: {
@@ -116,9 +112,6 @@ export async function getDashboardData(
     prisma.followUpAction.count({
       where: { status: "OVERDUE", incident: { centerId, ...typeWhere } },
     }),
-    prisma.riddorFlag.count({
-      where: { status: "PENDING", incident: { centerId, ...typeWhere } },
-    }),
     win.prevStart
       ? prisma.incident.groupBy({
           by: ["reportedBy"],
@@ -136,15 +129,6 @@ export async function getDashboardData(
       },
       select: { assignedTo: true, status: true },
     }),
-    prisma.riddorFlag.findMany({
-      where: { status: { in: ["PENDING", "OVERDUE"] }, incident: { centerId } },
-      orderBy: { reportingDeadline: "asc" },
-      select: {
-        status: true,
-        reportingDeadline: true,
-        incident: { select: { id: true, reference: true } },
-      },
-    }),
   ])
 
   // ── Stats ──
@@ -152,7 +136,6 @@ export async function getDashboardData(
     incidents: periodIncidents.length,
     open,
     overdueActions,
-    riddorPending,
     reportable: periodIncidents.filter((i) => isReportable(i.severity)).length,
     injured: periodIncidents.reduce((sum, i) => sum + i.injuredCount, 0),
   }
@@ -215,14 +198,6 @@ export async function getDashboardData(
     .sort((a, b) => b.overdue - a.overdue || b.open - a.open)
     .slice(0, 6)
 
-  const alertFlags: DashboardAlertFlag[] = alertFlagRecords.map((flag) => ({
-    incidentId: flag.incident.id,
-    reference: flag.incident.reference,
-    reportingDeadline: flag.reportingDeadline,
-    status: flag.status,
-    daysRemaining: daysUntil(flag.reportingDeadline),
-  }))
-
   return {
     timeframe,
     stats,
@@ -232,8 +207,6 @@ export async function getDashboardData(
     types,
     reporters,
     assignees,
-    alertFlags,
-    hasOverdueFlag: alertFlags.some((f) => f.status === "OVERDUE"),
   }
 }
 

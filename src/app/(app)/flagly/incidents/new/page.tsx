@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { getFlaglyContext } from "@/lib/flagly/context"
+import { getAreaOptions } from "@/lib/flagly/data/areas"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
 import { IncidentForm } from "@/components/flagly/incidents/IncidentForm"
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = { title: "Report incident" }
 
 export default async function NewIncidentPage() {
   const { user, activeCenter, centers } = await getFlaglyContext()
+  const areas = await getAreaOptions()
 
   return (
     <div>
@@ -23,6 +25,7 @@ export default async function NewIncidentPage() {
       <IncidentForm
         mode="create"
         centers={centers}
+        areas={areas}
         defaultCenterId={activeCenter?.id ?? null}
         defaultReportedBy={user.name}
       />

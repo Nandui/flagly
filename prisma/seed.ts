@@ -9,13 +9,61 @@ function at(base: Date, hour: number, minute: number): Date {
   return set(base, { hours: hour, minutes: minute, seconds: 0, milliseconds: 0 })
 }
 
+// ─── Area helpers ──────────────────────────────────────────────────────────────
+
+type AreaMap = Map<string, { id: string; subs: Map<string, string> }>
+
+async function seedAreas(
+  centerId: string,
+  defs: { name: string; subs: string[] }[]
+): Promise<AreaMap> {
+  const map: AreaMap = new Map()
+  for (let i = 0; i < defs.length; i++) {
+    const def = defs[i]
+    const area = await prisma.area.create({
+      data: { centerId, name: def.name, sortOrder: i },
+      select: { id: true },
+    })
+    const subs = new Map<string, string>()
+    for (let j = 0; j < def.subs.length; j++) {
+      const sub = await prisma.subArea.create({
+        data: { areaId: area.id, name: def.subs[j], sortOrder: j },
+        select: { id: true },
+      })
+      subs.set(def.subs[j], sub.id)
+    }
+    map.set(def.name, { id: area.id, subs })
+  }
+  return map
+}
+
+// Resolve an (area, sub-area) pair into the incident location fields:
+// the FK ids plus the denormalised name copies stored on the incident.
+function locator(map: AreaMap) {
+  return (areaName: string, subName?: string) => {
+    const area = map.get(areaName)
+    if (!area) throw new Error(`Unknown area: ${areaName}`)
+    const subAreaId = subName ? (area.subs.get(subName) ?? null) : null
+    if (subName && !subAreaId) {
+      throw new Error(`Unknown sub-area "${subName}" in "${areaName}"`)
+    }
+    return {
+      areaId: area.id,
+      subAreaId,
+      location: areaName,
+      locationDetail: subName ?? null,
+    }
+  }
+}
+
 async function main() {
   console.log("Clearing existing data…")
   await prisma.followUpAction.deleteMany()
-  await prisma.riddorFlag.deleteMany()
   await prisma.witness.deleteMany()
   await prisma.injuredParty.deleteMany()
   await prisma.incident.deleteMany()
+  await prisma.subArea.deleteMany()
+  await prisma.area.deleteMany()
   await prisma.user.deleteMany()
   await prisma.center.deleteMany()
 
@@ -36,6 +84,25 @@ async function main() {
       address: "Tallaght, Dublin, Ireland",
     },
   })
+
+  console.log("Creating areas & sub-areas…")
+  const corkAreas = await seedAreas(cork.id, [
+    { name: "Pool hall", subs: ["Poolside, deep end", "Poolside, shallow end"] },
+    { name: "Changing village", subs: ["Showers corridor", "Lockers"] },
+    { name: "Gym floor", subs: ["Free-weights area", "Cardio area"] },
+    { name: "Sports hall", subs: ["Court 2", "Equipment store"] },
+    { name: "Reception", subs: ["Entrance", "Front desk"] },
+    { name: "Plant room", subs: ["Chemical dosing area"] },
+  ])
+  const loc = locator(corkAreas)
+
+  // A second centre with its own areas (no incidents yet) so the admin screen
+  // shows the per-centre separation.
+  await seedAreas(dublin.id, [
+    { name: "Pool hall", subs: ["Main pool", "Toddler pool"] },
+    { name: "Gym floor", subs: [] },
+    { name: "Reception", subs: [] },
+  ])
 
   console.log("Creating demo user…")
   const passwordHash = await bcrypt.hash("password123", 10)
@@ -64,8 +131,7 @@ async function main() {
       status: "CLOSED",
       severity: "MINOR",
       occurredAt: at(subMonths(now, 5), 9, 40),
-      location: "Changing village",
-      locationDetail: "Poolside corridor near showers",
+      ...loc("Changing village", "Showers corridor"),
       description:
         "A member slipped on a wet patch of floor in the corridor between the showers and the pool hall. They sat down heavily but were able to get up unaided. First aid offered and declined.",
       immediateAction:
@@ -101,8 +167,7 @@ async function main() {
       status: "OPEN",
       severity: "MINOR",
       occurredAt: at(subMonths(now, 4), 17, 25),
-      location: "Gym floor",
-      locationDetail: "Free-weights area",
+      ...loc("Gym floor", "Free-weights area"),
       description:
         "A member caught their shin on the edge of a weights bench, causing a small laceration. First aid administered on site.",
       immediateAction: "Cleaned and dressed the wound with a plaster from the first aid kit.",
@@ -134,8 +199,7 @@ async function main() {
       status: "DRAFT",
       severity: "MINOR",
       occurredAt: at(subDays(now, 2), 11, 10),
-      location: "Reception",
-      locationDetail: "Entrance mat",
+      ...loc("Reception", "Entrance"),
       description:
         "Visitor slipped on rainwater near the entrance. Drafting report — awaiting details.",
       reportedBy: reporter,
@@ -153,8 +217,7 @@ async function main() {
       status: "UNDER_INVESTIGATION",
       severity: "SIGNIFICANT",
       occurredAt: at(subMonths(now, 3), 7, 15),
-      location: "Plant room",
-      locationDetail: "Chemical dosing area",
+      ...loc("Plant room", "Chemical dosing area"),
       description:
         "During a delivery, a container of sodium hypochlorite was nearly knocked over next to the acid dosing line. Had the two mixed, chlorine gas could have been released. No spill occurred.",
       immediateAction:
@@ -197,8 +260,7 @@ async function main() {
       status: "DRAFT",
       severity: "MINOR",
       occurredAt: at(subDays(now, 1), 19, 45),
-      location: "Gym floor",
-      locationDetail: "Cardio area, treadmill 4",
+      ...loc("Gym floor", "Cardio area"),
       description:
         "Treadmill belt stopped abruptly mid-use. User kept their balance and was not hurt. Machine taken out of service pending inspection.",
       reportedBy: reporter,
@@ -216,8 +278,7 @@ async function main() {
       status: "UNDER_INVESTIGATION",
       severity: "SIGNIFICANT",
       occurredAt: at(subMonths(now, 1), 18, 5),
-      location: "Sports hall",
-      locationDetail: "Court 2, during a badminton session",
+      ...loc("Sports hall", "Court 2"),
       description:
         "A member fell awkwardly while reaching for a shuttle and landed on an outstretched hand. They reported immediate pain and swelling to the wrist. Suspected fracture.",
       immediateAction:
@@ -274,7 +335,7 @@ async function main() {
     },
   })
 
-  // 7 — REPORTABLE · staff absence over 3 days · OPEN · HSA flag PENDING
+  // 7 — REPORTABLE · staff absence over 3 days · OPEN
   await prisma.incident.create({
     data: {
       centerId: cork.id,
@@ -283,14 +344,12 @@ async function main() {
       status: "OPEN",
       severity: "REPORTABLE",
       occurredAt: at(subDays(now, 21), 8, 50),
-      location: "Pool hall",
-      locationDetail: "Poolside, deep end",
+      ...loc("Pool hall", "Poolside, deep end"),
       description:
         "A lifeguard slipped on the wet poolside while responding to a swimmer and twisted their ankle badly. They were unable to continue their shift and have been absent from normal duties for more than three consecutive days.",
       immediateAction:
         "Ankle iced and elevated, lifeguard relieved of duty and advised to attend their GP / A&E.",
       reportedBy: reporter,
-      riddorRequired: true,
       witnessCount: 1,
       injuredCount: 1,
       injuredParties: {
@@ -335,22 +394,12 @@ async function main() {
           },
           {
             description:
-              "Complete and submit the HSA BeSafe report for the over-3-day injury.",
+              "Escalate the over-3-day staff injury to senior management for review.",
             assignedTo: "Sarah Brennan",
             dueDate: subDays(now, 1),
             status: "OVERDUE",
           },
         ],
-      },
-      riddorFlag: {
-        create: {
-          authority: "HSA_IRELAND",
-          classification: "Over-3-day injury",
-          reportingDeadline: addDays(now, 5),
-          status: "PENDING",
-          notes:
-            "Lifeguard absent from normal duties for more than 3 consecutive days. To be submitted via the HSA BeSafe portal.",
-        },
       },
     },
   })
@@ -364,8 +413,7 @@ async function main() {
       status: "OPEN",
       severity: "MINOR",
       occurredAt: at(subMonths(now, 2), 15, 30),
-      location: "Sports hall",
-      locationDetail: "Equipment store",
+      ...loc("Sports hall", "Equipment store"),
       description:
         "A dry powder fire extinguisher was knocked from its bracket and discharged across the equipment store, coating stored mats and equipment in powder. No fire and no injuries.",
       immediateAction:
@@ -387,7 +435,6 @@ async function main() {
   })
 
   console.log(`Seed complete: 2 centres, 1 user, ${seq} incidents at ${cork.name}.`)
-  void dublin
 }
 
 main()

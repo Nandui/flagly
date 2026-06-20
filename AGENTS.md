@@ -35,14 +35,19 @@ Read this before changing code.
 - Incident references are **`INC-XX-NNNN`** (`XX` = `Center.siteCode`), generated
   server-side inside a transaction with retry on unique collision
   (`src/lib/flagly/reference.ts` + `actions/incidents.ts`).
-- RIDDOR/HSA deadlines are **legally significant**. The day counts live in
-  `src/lib/flagly/deadline.ts` (HSA Ireland: 7 / 30-working-day rules; RIDDOR
-  NI/UK: 10 / 15-day rules). Deadlines are recomputed server-side on flag create.
-- Drafts (`status = DRAFT`) do **not** trigger the RIDDOR banner, do not require a
-  full narrative, and do not appear on the dashboard active list. `OPEN` and above
-  do.
-- `ActionStatus.OVERDUE` / `RiddorStatus.OVERDUE` are stored in the DB and refreshed
-  on read by the sweep functions in `data/incidents.ts`.
+- **Locations are a per-centre `Area → SubArea` taxonomy** (2 levels). An incident
+  references `areaId` (required) and `subAreaId` (optional). The chosen names are
+  **denormalised** onto `Incident.location` / `locationDetail` server-side (in
+  `actions/incidents.ts` via `resolveLocation`) so lists, the dashboard ("Top
+  areas") and exports never join. Area FKs are `onDelete: SetNull`; the admin
+  delete actions still block removing an area/sub-area that any incident uses.
+  Areas are managed under **Admin → Areas** (`/flagly/areas`,
+  `data/areas.ts` + `actions/areas.ts`); the incident form gets all centres'
+  areas via `getAreaOptions()` and filters client-side.
+- Drafts (`status = DRAFT`) do **not** require a full narrative and do not appear
+  on the dashboard active list. `OPEN` and above do.
+- `ActionStatus.OVERDUE` is stored in the DB and refreshed on read by
+  `sweepOverdueActions` in `data/incidents.ts`.
 
 ## Design system
 

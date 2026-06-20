@@ -27,15 +27,16 @@ model Center {
   updatedAt DateTime @updatedAt
 
   incidents Incident[]
+  areas     Area[]
   users     User[]
 
   @@index([siteCode])
 }
 
 enum Region {
-  IRELAND          // HSA Ireland (BeSafe portal)
-  NORTHERN_IRELAND // HSENI
-  GREAT_BRITAIN    // HSE UK
+  IRELAND          // Republic of Ireland
+  NORTHERN_IRELAND // Northern Ireland
+  GREAT_BRITAIN    // Great Britain
 }
 
 model User {
@@ -63,15 +64,21 @@ model Incident {
   status          IncidentStatus   @default(DRAFT)
   severity        IncidentSeverity
   occurredAt      DateTime // exact date + time of the incident
-  location        String // named location within the centre
-  locationDetail  String? // more specific e.g. "deep end, lane 3"
+  // Structured location: an Area (and optional SubArea) within the centre.
+  // `location` / `locationDetail` are denormalised copies of their names so
+  // lists, the dashboard and exports never need to join, and survive deletes.
+  areaId          String?
+  area            Area?            @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  subAreaId       String?
+  subArea         SubArea?         @relation(fields: [subAreaId], references: [id], onDelete: SetNull)
+  location        String // denormalised Area name
+  locationDetail  String? // denormalised SubArea name
   description     String // full narrative of what happened
   immediateAction String? // what was done at the time
   reportedBy      String // name of person completing the report
   reportedById    String? // User.id if the reporter is a system user
   witnessCount    Int              @default(0) // denormalised for display
   injuredCount    Int              @default(0) // denormalised for display
-  riddorRequired  Boolean          @default(false)
   closedAt        DateTime?
   closedBy        String?
   closureNotes    String?
@@ -81,13 +88,48 @@ model Incident {
   witnesses       Witness[]
   injuredParties  InjuredParty[]
   followUpActions FollowUpAction[]
-  riddorFlag      RiddorFlag?
 
   @@index([centerId])
   @@index([status])
   @@index([severity])
   @@index([occurredAt])
-  @@index([riddorRequired])
+  @@index([areaId])
+  @@index([subAreaId])
+}
+
+// ─── AREA / SUB-AREA ─────────────────────────────────────────────────────────
+// A per-centre, two-level location taxonomy (Area → SubArea). Incidents are
+// reported against an Area and, optionally, a SubArea within it.
+
+model Area {
+  id        String   @id @default(cuid())
+  centerId  String
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subAreas  SubArea[]
+  incidents Incident[]
+
+  @@unique([centerId, name])
+  @@index([centerId])
+}
+
+model SubArea {
+  id        String   @id @default(cuid())
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  incidents Incident[]
+
+  @@unique([areaId, name])
+  @@index([areaId])
 }
 
 enum IncidentType {
@@ -110,7 +152,7 @@ enum IncidentStatus {
 enum IncidentSeverity {
   MINOR // first aid only, no lost time
   SIGNIFICANT // medical treatment, potential lost time
-  REPORTABLE // meets HSA / RIDDOR reporting threshold
+  REPORTABLE // serious enough to warrant external/management review
   CRITICAL // fatality or life-threatening
 }
 
@@ -201,38 +243,4 @@ enum ActionStatus {
   IN_PROGRESS
   COMPLETE
   OVERDUE // computed from dueDate, but stored to enable efficient queries
-}
-
-// ─── RIDDOR / HSA FLAG ───────────────────────────────────────────────────────
-
-model RiddorFlag {
-  id                String             @id @default(cuid())
-  incidentId        String             @unique
-  incident          Incident           @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  authority         ReportingAuthority
-  classification    String // e.g. "Over-3-day injury", "Dangerous occurrence"
-  reportingDeadline DateTime // computed from occurredAt + authority rules
-  status            RiddorStatus       @default(PENDING)
-  reportedAt        DateTime?
-  referenceNumber   String?
-  reportedBy        String?
-  method            String? // e.g. "Online (BeSafe portal)", "Phone"
-  notes             String             @default("")
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@index([status])
-  @@index([reportingDeadline])
-}
-
-enum ReportingAuthority {
-  HSA_IRELAND // Health and Safety Authority — Republic of Ireland (BeSafe portal)
-  HSENI // Health and Safety Executive NI — Northern Ireland
-  HSE_UK // Health and Safety Executive — Great Britain
-}
-
-enum RiddorStatus {
-  PENDING // not yet reported
-  REPORTED // submitted to authority
-  OVERDUE // deadline passed without report
 }

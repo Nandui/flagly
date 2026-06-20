@@ -13,7 +13,6 @@ import {
   Pencil,
   Plus,
   Search,
-  TriangleAlert,
   UserRound,
   Users,
 } from "lucide-react"
@@ -24,7 +23,6 @@ import type {
   Witness,
 } from "@prisma/client"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Panel } from "@/components/flagly/shared/Panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -44,9 +42,6 @@ import { InjuredPartyForm } from "@/components/flagly/injured/InjuredPartyForm"
 import { InjuredPartyList } from "@/components/flagly/injured/InjuredPartyList"
 import { FollowUpActionForm } from "@/components/flagly/actions/FollowUpActionForm"
 import { FollowUpActionTable } from "@/components/flagly/actions/FollowUpActionTable"
-import { RiddorFlagForm } from "@/components/flagly/riddor/RiddorFlagForm"
-import { MarkReportedForm } from "@/components/flagly/riddor/MarkReportedForm"
-import { RiddorStatusCard } from "@/components/flagly/riddor/RiddorStatusCard"
 import { IncidentTimeline, type TimelineEvent } from "@/components/flagly/shared/IncidentTimeline"
 import { daysSince, formatDateTime } from "@/lib/flagly/utils"
 import { setIncidentStatus, submitDraft } from "@/lib/flagly/actions/incidents"
@@ -57,11 +52,9 @@ type SheetState =
   | { k: "witness"; record?: Witness }
   | { k: "injured"; record?: InjuredParty }
   | { k: "action"; record?: FollowUpAction }
-  | { k: "riddor" }
-  | { k: "markReported" }
   | { k: "close" }
 
-const TAB_VALUES = ["overview", "witnesses", "injured", "actions", "riddor"]
+const TAB_VALUES = ["overview", "witnesses", "injured", "actions"]
 
 export function IncidentDetailView({
   incident,
@@ -85,9 +78,6 @@ export function IncidentDetailView({
   const canClose =
     (incident.status === "OPEN" || incident.status === "UNDER_INVESTIGATION") &&
     openActionCount === 0
-  const flag = incident.riddorFlag
-  const showRiddorBanner =
-    incident.riddorRequired && (!flag || flag.status !== "REPORTED")
 
   function close() {
     setSheet(null)
@@ -98,7 +88,6 @@ export function IncidentDetailView({
       const result = await submitDraft({ incidentId: incident.id })
       if (result.ok) {
         toast.success("Report submitted.")
-        if (result.data.needsRiddor) setTab("riddor")
         router.refresh()
       } else {
         toast.error(result.error)
@@ -216,35 +205,6 @@ export function IncidentDetailView({
         </div>
       </div>
 
-      {/* RIDDOR banner */}
-      {showRiddorBanner ? (
-        <button
-          type="button"
-          onClick={() => setTab("riddor")}
-          className={cn(
-            "flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors",
-            flag?.status === "OVERDUE"
-              ? "border-severity-critical-line bg-severity-critical-bg text-severity-critical hover:bg-severity-critical-bg/80"
-              : "border-severity-reportable-line bg-severity-reportable-bg text-severity-reportable hover:bg-severity-reportable-bg/80"
-          )}
-        >
-          <TriangleAlert className="size-5 shrink-0" />
-          <div className="flex-1">
-            <p className="font-medium">
-              {flag
-                ? "This incident requires authority notification."
-                : "This incident was marked as reportable. A RIDDOR / HSA flag is required."}
-            </p>
-            <p className="text-sm opacity-90">
-              {flag ? "Open the RIDDOR / HSA tab to report it." : "Complete the flag in the RIDDOR / HSA tab."}
-            </p>
-          </div>
-          <span className="text-sm font-medium underline-offset-4 hover:underline">
-            {flag ? "View →" : "Complete flag →"}
-          </span>
-        </button>
-      ) : null}
-
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <div className="no-scrollbar overflow-x-auto border-b">
@@ -262,7 +222,6 @@ export function IncidentDetailView({
               Follow-up actions
               <Count n={incident.followUpActions.length} />
             </TabsTrigger>
-            <TabsTrigger value="riddor">RIDDOR / HSA</TabsTrigger>
           </TabsList>
         </div>
 
@@ -425,45 +384,6 @@ export function IncidentDetailView({
             onEdit={(record) => setSheet({ k: "action", record })}
           />
         </TabsContent>
-
-        {/* RIDDOR / HSA */}
-        <TabsContent value="riddor">
-          {flag ? (
-            <RiddorStatusCard
-              flag={flag}
-              onMarkReported={() => setSheet({ k: "markReported" })}
-              onEdit={() => setSheet({ k: "riddor" })}
-            />
-          ) : incident.riddorRequired ? (
-            <Panel contentClassName="flex flex-col items-start gap-4">
-              <div className="flex items-start gap-3 text-severity-reportable">
-                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
-                <p className="font-medium">
-                  This incident was marked as reportable. A RIDDOR / HSA flag is
-                  required.
-                </p>
-              </div>
-              <Button onClick={() => setSheet({ k: "riddor" })}>
-                Complete flag →
-              </Button>
-            </Panel>
-          ) : (
-            <Panel contentClassName="flex flex-col items-start gap-4">
-              <div className="space-y-1">
-                <p className="font-medium">
-                  This incident has not been flagged for authority notification.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  If this incident meets reporting criteria, use the button below to
-                  create a flag.
-                </p>
-              </div>
-              <Button onClick={() => setSheet({ k: "riddor" })}>
-                Create RIDDOR / HSA flag
-              </Button>
-            </Panel>
-          )}
-        </TabsContent>
       </Tabs>
 
       {/* Sheets */}
@@ -485,22 +405,6 @@ export function IncidentDetailView({
         incidentId={incident.id}
         record={sheet?.k === "action" ? sheet.record : null}
       />
-      <RiddorFlagForm
-        open={sheet?.k === "riddor"}
-        onOpenChange={(o) => !o && close()}
-        incidentId={incident.id}
-        occurredAt={incident.occurredAt}
-        record={flag}
-      />
-      {flag ? (
-        <MarkReportedForm
-          open={sheet?.k === "markReported"}
-          onOpenChange={(o) => !o && close()}
-          riddorFlagId={flag.id}
-          defaultReportedBy={currentUserName}
-          defaultNotes={flag.notes}
-        />
-      ) : null}
       <CloseIncidentForm
         open={sheet?.k === "close"}
         onOpenChange={(o) => !o && close()}

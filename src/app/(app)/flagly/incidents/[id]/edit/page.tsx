@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getFlaglyContext } from "@/lib/flagly/context"
 import { getIncidentDetail } from "@/lib/flagly/data/incidents"
+import { getAreaOptions } from "@/lib/flagly/data/areas"
 import { PageHeader } from "@/components/flagly/shared/PageHeader"
 import { IncidentForm } from "@/components/flagly/incidents/IncidentForm"
 
@@ -15,6 +16,7 @@ export default async function EditIncidentPage({
 }) {
   const { id } = await params
   const { user, activeCenter, centers } = await getFlaglyContext()
+  const areas = await getAreaOptions()
 
   const incident = await getIncidentDetail(id)
   if (!incident) notFound()
@@ -33,6 +35,7 @@ export default async function EditIncidentPage({
       <IncidentForm
         mode="edit"
         centers={centers}
+        areas={areas}
         defaultCenterId={activeCenter?.id ?? null}
         defaultReportedBy={user.name}
         initial={{
@@ -41,8 +44,8 @@ export default async function EditIncidentPage({
           type: incident.type,
           severity: incident.severity,
           occurredAt: incident.occurredAt,
-          location: incident.location,
-          locationDetail: incident.locationDetail,
+          areaId: incident.areaId,
+          subAreaId: incident.subAreaId,
           description: incident.description,
           immediateAction: incident.immediateAction,
           reportedBy: incident.reportedBy,

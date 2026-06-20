@@ -5,7 +5,7 @@ the style of the **Centrely** suite. Managers report, investigate and close out
 workplace incidents across their sites and track the full lifecycle:
 
 > initial report → severity triage → witness statements → injured-party records →
-> follow-up actions → authority notification (HSA / RIDDOR) → closure
+> follow-up actions → investigation → closure
 
 The primary user is a duty manager filling in a report at the scene on a phone, so
 the **Report New Incident** form is the heart of the product and is built to work
@@ -56,9 +56,9 @@ Password: password123
 ```
 
 The seed creates two centres (LeisureWorld Cork `LW`, LeisureWorld Dublin `LD`),
-one Admin user, and eight incidents across the last six months — including a
-REPORTABLE staff injury with a pending HSA flag approaching its deadline, so the
-dashboard is populated from first load.
+each with their own areas/sub-areas, one Admin user, and eight incidents across
+the last six months — including a REPORTABLE staff injury with an overdue
+follow-up action, so the dashboard is populated from first load.
 
 Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 
@@ -78,14 +78,14 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 
 | Route | Page |
 |---|---|
-| `/flagly` | Dashboard (stats, RIDDOR alert banner, active incidents, overdue actions, 6-month trend) |
+| `/flagly` | Dashboard (KPI cards, activity trend, top areas, type breakdown, leaderboards) |
 | `/flagly/incidents` | All incidents — filterable table, Excel/PDF export |
 | `/flagly/incidents/new` | Report a new incident (the core form) |
-| `/flagly/incidents/[id]` | Incident detail — Overview / Witnesses / Injured / Actions / RIDDOR tabs |
+| `/flagly/incidents/[id]` | Incident detail — Overview / Witnesses / Injured / Actions tabs |
 | `/flagly/incidents/[id]/edit` | Edit core incident fields |
-| `/flagly/riddor` | RIDDOR / HSA tracker with deadline countdowns |
 | `/flagly/actions` | Cross-incident follow-up actions |
 | `/flagly/centres` | Manage centres — add / edit / site code (Admin only) |
+| `/flagly/areas` | Manage per-centre areas & sub-areas (Admin only) |
 
 ## Architecture
 
@@ -95,9 +95,9 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 - `"use client"` is used only for forms, interactivity and table filtering.
 - Incident references (`INC-XX-NNNN`) are generated server-side inside a
   transaction (`src/lib/flagly/reference.ts`).
-- RIDDOR/HSA reporting deadlines are computed from the real HSA Ireland and
-  RIDDOR (NI/UK) rules in `src/lib/flagly/deadline.ts`.
-- `ActionStatus.OVERDUE` and `RiddorStatus.OVERDUE` are stored (for efficient
-  queries) and refreshed on read via lightweight sweep functions.
+- Locations are a per-centre **Area → SubArea** taxonomy; an incident stores the
+  `areaId`/`subAreaId` plus denormalised name copies (`location`/`locationDetail`).
+- `ActionStatus.OVERDUE` is stored (for efficient queries) and refreshed on read
+  via a lightweight sweep function.
 
 See `AGENTS.md` for contributor conventions.

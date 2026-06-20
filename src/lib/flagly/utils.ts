@@ -6,8 +6,6 @@ import type {
   IncidentType,
   InjuredPartyType,
   Region,
-  ReportingAuthority,
-  RiddorStatus,
   TreatmentGiven,
 } from "@prisma/client"
 import type { Timeframe } from "@/lib/flagly/types"
@@ -49,7 +47,7 @@ export const SEVERITY_DESCRIPTIONS: Record<IncidentSeverity, string> = {
   MINOR: "First aid only. No lost time. No further medical treatment required.",
   SIGNIFICANT:
     "Medical treatment required or possible. Lost time likely. Hospital or GP visit.",
-  REPORTABLE: "Meets HSA / RIDDOR reporting threshold (see criteria below).",
+  REPORTABLE: "Serious enough to warrant escalation and management review.",
   CRITICAL: "Fatality or life-threatening injury.",
 }
 
@@ -73,24 +71,6 @@ export const ACTION_STATUS_LABELS: Record<ActionStatus, string> = {
   OPEN: "Open",
   IN_PROGRESS: "In progress",
   COMPLETE: "Complete",
-  OVERDUE: "Overdue",
-}
-
-export const AUTHORITY_LABELS: Record<ReportingAuthority, string> = {
-  HSA_IRELAND: "HSA Ireland",
-  HSENI: "HSENI (NI)",
-  HSE_UK: "HSE UK",
-}
-
-export const AUTHORITY_FULL_LABELS: Record<ReportingAuthority, string> = {
-  HSA_IRELAND: "HSA Ireland (BeSafe Portal)",
-  HSENI: "HSENI — Health & Safety Executive NI",
-  HSE_UK: "HSE — Health & Safety Executive (GB)",
-}
-
-export const RIDDOR_STATUS_LABELS: Record<RiddorStatus, string> = {
-  PENDING: "Pending",
-  REPORTED: "Reported",
   OVERDUE: "Overdue",
 }
 
@@ -126,7 +106,6 @@ export function toOptions<T extends string>(
 export const INCIDENT_TYPE_OPTIONS = toOptions(INCIDENT_TYPE_LABELS)
 export const INJURED_PARTY_TYPE_OPTIONS = toOptions(INJURED_PARTY_TYPE_LABELS)
 export const TREATMENT_OPTIONS = toOptions(TREATMENT_LABELS)
-export const AUTHORITY_OPTIONS = toOptions(AUTHORITY_LABELS)
 export const REGION_OPTIONS = toOptions(REGION_LABELS)
 
 export const SEVERITY_ORDER: IncidentSeverity[] = [
@@ -184,17 +163,6 @@ export function actionStatusBadgeClass(status: ActionStatus): string {
     case "IN_PROGRESS":
       return "bg-status-investigating-bg text-status-investigating"
     case "COMPLETE":
-      return "bg-status-closed-bg text-status-closed"
-    case "OVERDUE":
-      return "bg-severity-critical-bg text-severity-critical"
-  }
-}
-
-export function riddorStatusBadgeClass(status: RiddorStatus): string {
-  switch (status) {
-    case "PENDING":
-      return "bg-status-investigating-bg text-status-investigating"
-    case "REPORTED":
       return "bg-status-closed-bg text-status-closed"
     case "OVERDUE":
       return "bg-severity-critical-bg text-severity-critical"

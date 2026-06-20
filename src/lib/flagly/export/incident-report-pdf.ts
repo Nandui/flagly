@@ -1,11 +1,9 @@
 import type { IncidentDetail } from "@/lib/flagly/types"
 import {
   ACTION_STATUS_LABELS,
-  AUTHORITY_FULL_LABELS,
   INCIDENT_STATUS_LABELS,
   INCIDENT_TYPE_LABELS,
   INJURED_PARTY_TYPE_LABELS,
-  RIDDOR_STATUS_LABELS,
   SEVERITY_LABELS,
   TREATMENT_LABELS,
   formatDate,
@@ -14,8 +12,8 @@ import {
 
 /**
  * Produce a clean, white-background, text-based PDF of a single incident —
- * narrative, injured parties, witnesses, follow-up actions and the RIDDOR/HSA
- * flag. Suitable for insurance submission or regulatory use.
+ * narrative, injured parties, witnesses and follow-up actions. Suitable for
+ * insurance submission or internal records.
  */
 export async function exportIncidentReportToPdf(incident: IncidentDetail) {
   const { jsPDF } = await import("jspdf")
@@ -168,23 +166,6 @@ export async function exportIncidentReportToPdf(incident: IncidentDetail) {
         { size: 9, color: [71, 85, 105], gap: 6 }
       )
     })
-  }
-
-  // ── RIDDOR / HSA ──
-  if (incident.riddorFlag) {
-    const flag = incident.riddorFlag
-    heading("RIDDOR / HSA notification")
-    field("Authority", AUTHORITY_FULL_LABELS[flag.authority])
-    field("Classification", flag.classification)
-    field("Reporting deadline", formatDate(flag.reportingDeadline))
-    field("Status", RIDDOR_STATUS_LABELS[flag.status])
-    if (flag.status === "REPORTED") {
-      field("Reported on", formatDate(flag.reportedAt))
-      field("Reference number", flag.referenceNumber ?? "—")
-      field("Reported by", flag.reportedBy ?? "—")
-      field("Method", flag.method ?? "—")
-    }
-    if (flag.notes?.trim()) field("Notes", flag.notes)
   }
 
   if (incident.status === "CLOSED") {

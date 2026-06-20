@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   FileWarning,
-  AlertTriangle,
   CheckSquare,
   type LucideIcon,
 } from "lucide-react"
@@ -22,7 +21,6 @@ export const MODULE_NAV: Record<string, NavItem[]> = {
   flagly: [
     { href: "/flagly", label: "Dashboard", icon: LayoutDashboard, cap: "view" },
     { href: "/flagly/incidents", label: "All Incidents", icon: FileWarning, cap: "view" },
-    { href: "/flagly/riddor", label: "RIDDOR / HSA", icon: AlertTriangle, cap: "view" },
     { href: "/flagly/actions", label: "Follow-up Actions", icon: CheckSquare, cap: "view" },
   ],
 }

@@ -7,9 +7,6 @@ import type {
   IncidentStatus,
   IncidentType,
   InjuredParty,
-  ReportingAuthority,
-  RiddorFlag,
-  RiddorStatus,
   Witness,
 } from "@prisma/client"
 
@@ -31,7 +28,6 @@ export type IncidentListItem = {
   locationDetail: string | null
   occurredAt: Date
   reportedBy: string
-  riddorRequired: boolean
   centerId: string
   centerName: string
   centerSiteCode: string | null
@@ -39,7 +35,6 @@ export type IncidentListItem = {
   witnessCount: number
   openActionCount: number
   totalActionCount: number
-  riddorStatus: RiddorStatus | null
 }
 
 // ─── Incident detail (full record + relations) ───────────────────────────────────
@@ -49,7 +44,30 @@ export type IncidentDetail = Incident & {
   witnesses: Witness[]
   injuredParties: InjuredParty[]
   followUpActions: FollowUpAction[]
-  riddorFlag: RiddorFlag | null
+}
+
+// ─── Area / SubArea (per-centre location taxonomy) ───────────────────────────────
+
+export type SubAreaItem = {
+  id: string
+  name: string
+  incidentCount: number
+}
+
+export type AreaItem = {
+  id: string
+  centerId: string
+  name: string
+  incidentCount: number
+  subAreas: SubAreaItem[]
+}
+
+// Lightweight area + subarea options for the incident form's cascading pickers.
+export type AreaOption = {
+  id: string
+  centerId: string
+  name: string
+  subAreas: { id: string; name: string }[]
 }
 
 // ─── Cross-incident follow-up action row ─────────────────────────────────────────
@@ -72,30 +90,6 @@ export type ActionListItem = {
   }
 }
 
-// ─── RIDDOR / HSA tracker row ─────────────────────────────────────────────────────
-
-export type RiddorListItem = {
-  id: string
-  authority: ReportingAuthority
-  classification: string
-  reportingDeadline: Date
-  status: RiddorStatus
-  reportedAt: Date | null
-  referenceNumber: string | null
-  reportedBy: string | null
-  method: string | null
-  notes: string
-  incident: {
-    id: string
-    reference: string
-    location: string
-    occurredAt: Date
-    type: IncidentType
-    centerId: string
-    centerName: string
-  }
-}
-
 // ─── Dashboard ───────────────────────────────────────────────────────────────────
 
 export type Timeframe = "LAST_7_DAYS" | "THIS_MONTH" | "THIS_YEAR" | "ALL_TIME"
@@ -104,7 +98,6 @@ export type DashboardStats = {
   incidents: number
   open: number
   overdueActions: number
-  riddorPending: number
   reportable: number
   injured: number
 }
@@ -113,14 +106,6 @@ export type DashboardSparks = {
   incidents: number[]
   reportable: number[]
   injured: number[]
-}
-
-export type DashboardAlertFlag = {
-  incidentId: string
-  reference: string
-  reportingDeadline: Date
-  status: RiddorStatus
-  daysRemaining: number
 }
 
 export type ActivityPoint = { month: string; count: number }
@@ -145,6 +130,4 @@ export type DashboardData = {
   types: TypeDistributionItem[]
   reporters: ReporterRank[]
   assignees: AssigneeRank[]
-  alertFlags: DashboardAlertFlag[]
-  hasOverdueFlag: boolean
 }
