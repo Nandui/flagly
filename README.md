@@ -71,7 +71,8 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 | `npm run start` | Run the production build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:migrate` | Create/apply a dev migration |
-| `npm run db:seed` | Seed demo data |
+| `npm run db:seed` | Seed demo data (wipes the DB first) |
+| `npm run db:import` | Import the real Bishopstown starter incidents (idempotent, additive) |
 | `npm run db:reset` | Reset the database and re-seed |
 
 ## Routes
