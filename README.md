@@ -51,12 +51,13 @@ report incidents straight away. After that it's a normal sign-in page.
 ### Demo login (after `npm run db:seed`)
 
 ```
-Email:    manager@leisureworld.ie
-Password: password123
+Operations Manager (admin):  fernandoserina@leisureworldcork.com
+Staff:                       manager@leisureworld.ie
+Password (all accounts):     password123
 ```
 
 The seed creates two centres (LeisureWorld Cork `LW`, LeisureWorld Dublin `LD`),
-each with their own areas/sub-areas, three users (an Operations Manager + two
+each with their own areas/sub-areas, four users (an Operations Manager + three
 staff, all password `password123`), and eight incidents across the last six months —
 including a REPORTABLE staff injury with an overdue follow-up action, so the
 dashboard is populated from first load.
