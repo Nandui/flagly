@@ -4,8 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ *
- * Spatial Interface Systems design system
- * Blue accent · white surfaces · light borders · Inter + JetBrains Mono
+ * Spatial Interface Systems design system — "Duty board" identity
+ * Teal "on watch" accent · white surfaces · light borders ·
+ * Archivo (expanded) signage titles + Inter + JetBrains Mono
  * ------------------------------------------------------------------ */
 @theme {
   /* neutrals */
@@ -19,11 +20,11 @@
   --color-line: #e5e7eb;
   --color-line-strong: #d1d5db;
 
-  /* brand — blue */
-  --color-brand: #3b82f6;
-  --color-brand-strong: #2563eb;
-  --color-brand-soft: #eff6ff;
-  --color-brand-ink: #1e3a8a;
+  /* brand — teal ("on watch") */
+  --color-brand: #0f766e;
+  --color-brand-strong: #115e59;
+  --color-brand-soft: #f0fdfa;
+  --color-brand-ink: #134e4a;
 
   /* chrome surface — white sidebar */
   --color-sidebar-2: #f3f4f6;
@@ -45,11 +46,11 @@
   --ff-display: "Inter";
   --ff-body: "Inter";
   --ff-mono: "JetBrains Mono";
-  --ff-archivo: "Archivo"; /* expanded grotesque — Duty Board display face */
+  --ff-archivo: "Archivo"; /* expanded grotesque — board signage / page titles */
 
-  /* dashboard activity-chart bar gradient (overridable per visual direction) */
-  --chart-bar-from: #3b82f6;
-  --chart-bar-to: #93c5fd;
+  /* dashboard activity-chart bar gradient (teal "on watch" accent) */
+  --chart-bar-from: #0f766e;
+  --chart-bar-to: #5eead4;
 
   --background: #ffffff;
   --foreground: #111827;
@@ -58,36 +59,36 @@
   --popover: #ffffff;
   --popover-foreground: #111827;
 
-  --primary: #3b82f6; /* blue-500 */
+  --primary: #0f766e; /* teal-700 */
   --primary-foreground: #ffffff;
   --secondary: #f3f4f6;
   --secondary-foreground: #111827;
   --muted: #f3f4f6;
   --muted-foreground: #4b5563;
-  --accent: #eff6ff; /* blue-50 */
-  --accent-foreground: #1d4ed8; /* blue-700 */
+  --accent: #f0fdfa; /* teal-50 */
+  --accent-foreground: #0f766e; /* teal-700 */
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #3b82f6;
+  --ring: #0f766e;
 
-  --chart-1: #3b82f6;
-  --chart-2: #2563eb;
-  --chart-3: #0ea5e9;
-  --chart-4: #6366f1;
-  --chart-5: #14b8a6;
+  --chart-1: #0f766e; /* teal-700 */
+  --chart-2: #14b8a6; /* teal-500 */
+  --chart-3: #0ea5e9; /* sky-500 — kept for series contrast */
+  --chart-4: #2dd4bf; /* teal-400 */
+  --chart-5: #5eead4; /* teal-300 */
 
   /* sidebar — tonal chrome (matches the canvas) so white cards are the focus */
   --sidebar: #f1f3f5;
   --sidebar-foreground: #4b5563;
-  --sidebar-primary: #3b82f6;
+  --sidebar-primary: #0f766e;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eff6ff; /* blue-50 active */
-  --sidebar-accent-foreground: #1d4ed8; /* blue-700 */
+  --sidebar-accent: #f0fdfa; /* teal-50 active */
+  --sidebar-accent-foreground: #0f766e; /* teal-700 */
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #3b82f6;
+  --sidebar-ring: #0f766e;
 
   /* Flagly severity tokens (semantic — kept distinct) */
   --severity-minor: #15803d;
@@ -103,11 +104,11 @@
   --severity-critical-bg: #fee2e2;
   --severity-critical-line: #fca5a5;
 
-  /* Incident status tokens */
+  /* Incident status tokens (open = brand teal, matching the accent) */
   --status-draft: #6b7280;
   --status-draft-bg: #f3f4f6;
-  --status-open: #2563eb;
-  --status-open-bg: #eff6ff;
+  --status-open: #0f766e;
+  --status-open-bg: #f0fdfa;
   --status-investigating: #a16207;
   --status-investigating-bg: #fef3c7;
   --status-closed: #15803d;
@@ -115,7 +116,7 @@
 }
 
 .dark {
-  /* deep-charcoal environment with blue accent */
+  /* deep-charcoal environment with teal accent */
   --background: #0b1220;
   --foreground: #e5e7eb;
   --card: #111827;
@@ -123,35 +124,38 @@
   --popover: #111827;
   --popover-foreground: #e5e7eb;
 
-  --primary: #60a5fa;
+  --primary: #2dd4bf; /* teal-400 */
   --primary-foreground: #0b1220;
   --secondary: #1f2937;
   --secondary-foreground: #e5e7eb;
   --muted: #1f2937;
   --muted-foreground: #9ca3af;
-  --accent: #1e3a5f;
-  --accent-foreground: #bfdbfe;
+  --accent: #134e4a; /* teal-900 */
+  --accent-foreground: #99f6e4; /* teal-200 */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   --border: #1f2937;
   --input: #243044;
-  --ring: #60a5fa;
+  --ring: #2dd4bf;
 
-  --chart-1: #60a5fa;
-  --chart-2: #3b82f6;
-  --chart-3: #38bdf8;
-  --chart-4: #818cf8;
-  --chart-5: #2dd4bf;
+  --chart-bar-from: #14b8a6;
+  --chart-bar-to: #2dd4bf;
+
+  --chart-1: #2dd4bf; /* teal-400 */
+  --chart-2: #14b8a6; /* teal-500 */
+  --chart-3: #38bdf8; /* sky-400 — kept for series contrast */
+  --chart-4: #5eead4; /* teal-300 */
+  --chart-5: #0d9488; /* teal-600 */
 
   --sidebar: #0b1220;
   --sidebar-foreground: #cbd5e1;
-  --sidebar-primary: #60a5fa;
+  --sidebar-primary: #2dd4bf;
   --sidebar-primary-foreground: #0b1220;
-  --sidebar-accent: #1e3a5f;
-  --sidebar-accent-foreground: #bfdbfe;
+  --sidebar-accent: #134e4a; /* teal-900 */
+  --sidebar-accent-foreground: #99f6e4; /* teal-200 */
   --sidebar-border: #1f2937;
-  --sidebar-ring: #60a5fa;
+  --sidebar-ring: #2dd4bf;
 
   /* neutrals — dark */
   --color-bg: #0b1220;
@@ -182,11 +186,11 @@
   --severity-critical-bg: #450a0a;
   --severity-critical-line: #991b1b;
 
-  /* Incident status — dark */
+  /* Incident status — dark (open = brand teal) */
   --status-draft: #9ca3af;
   --status-draft-bg: #1f2937;
-  --status-open: #60a5fa;
-  --status-open-bg: #1e3a5f;
+  --status-open: #2dd4bf;
+  --status-open-bg: #134e4a;
   --status-investigating: #fbbf24;
   --status-investigating-bg: #3b2705;
   --status-closed: #4ade80;
@@ -308,54 +312,29 @@
   color: var(--color-muted-foreground);
 }
 
-/* Gradient progress-bar fills (dashboard distribution panels) */
-.bar-warm {
-  background-image: linear-gradient(90deg, #fb923c, #ef4444);
-}
-.bar-cool {
-  background-image: linear-gradient(90deg, #60a5fa, #2563eb);
-}
-.bar-green {
-  background-image: linear-gradient(90deg, #4ade80, #16a34a);
-}
-.bar-amber {
-  background-image: linear-gradient(90deg, #fcd34d, #d97706);
-}
-
-/* ------------------------------------------------------------------ *
- * "Duty board" visual direction — pilot, scoped to the dashboard.
- * Re-skins the dashboard as a leisure-centre operations board: an
- * expanded signage display face (Archivo) for the board title and a
- * teal "on watch" accent, while the rest of Flagly keeps its blue
- * identity. Pure token overrides — the components stay canonical, so
- * this is a reversible experiment, not a fork.
- * ------------------------------------------------------------------ */
-[data-duty-board] {
-  --primary: #0f766e; /* teal-700 — the "on watch" accent */
-  --primary-foreground: #ffffff;
-  --ring: #14b8a6; /* teal-500 */
-  --accent: #ccfbf1; /* teal-100 */
-  --accent-foreground: #115e59; /* teal-800 */
-
-  /* activity chart + cool distribution bars follow the teal accent */
-  --chart-bar-from: #0f766e;
-  --chart-bar-to: #5eead4;
-  --chart-1: #0f766e;
-  --chart-2: #14b8a6;
-}
-
-[data-duty-board] .bar-cool {
-  background-image: linear-gradient(90deg, #5eead4, #0f766e);
-}
-
-/* Signature: the board title set in expanded Archivo, like signage
-   posted on a physical duty board. Boldness lives here and nowhere else. */
+/* Signature: page titles set in expanded Archivo, like signage posted on a
+   physical duty board. Applied to PageHeader (every screen) + the dashboard
+   board header. The one bold typographic move; everything else stays Inter. */
 .board-title {
   font-family: var(--ff-archivo), var(--ff-display), ui-sans-serif, system-ui,
     sans-serif;
   font-stretch: 125%;
   font-weight: 700;
   letter-spacing: -0.005em;
+}
+
+/* Gradient progress-bar fills (dashboard distribution panels) */
+.bar-warm {
+  background-image: linear-gradient(90deg, #fb923c, #ef4444);
+}
+.bar-cool {
+  background-image: linear-gradient(90deg, #5eead4, #0f766e);
+}
+.bar-green {
+  background-image: linear-gradient(90deg, #4ade80, #16a34a);
+}
+.bar-amber {
+  background-image: linear-gradient(90deg, #fcd34d, #d97706);
 }
 
 /* Soft panel depth on the white canvas */

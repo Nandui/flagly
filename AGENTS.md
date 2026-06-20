@@ -81,18 +81,25 @@ Read this before changing code.
 
 ## Design system
 
-Flagly follows the **Spatial Interface Systems** design language:
+Flagly follows the **Spatial Interface Systems** design language, given a
+**"Duty board"** identity — the app reads like a leisure-centre operations board:
 
-- **Palette** — blue accent (`--primary` `#3b82f6`, accent/`--ring` `#2563eb`) on a
-  **grey canvas with white cards**, `#111827`/`#4b5563` text, `#e5e7eb` borders. The
-  shell recedes: the sidebar is **tonal** (`--sidebar` matches the canvas, blue-50
-  active state) so the white work-surface cards are the focus.
+- **Palette** — teal "on watch" accent (`--primary` / `--ring` `#0f766e` teal-700,
+  `--accent` `#f0fdfa` teal-50) on a **grey canvas with white cards**,
+  `#111827`/`#4b5563` text, `#e5e7eb` borders. Open-incident status shares the brand
+  teal. The shell recedes: the sidebar is **tonal** (`--sidebar` matches the canvas,
+  teal-50 active state) so the white work-surface cards are the focus. Severity
+  (green→amber→orange→red) stays the loud, independent signal.
 - **Radii** — 11px cards (`rounded-[var(--radius-card)]`), 7px controls
   (`--radius` = `0.4375rem`), pill badges. Panels sit on the white canvas with a
   subtle border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
-- **Type** — Inter (display + body), JetBrains Mono for labels/data. Loaded via
+- **Type** — Inter (body + most headings), JetBrains Mono for labels/data, and
+  **Archivo (expanded, `wdth 125`)** for the signage signature. All three load via
   `<link>` in `src/app/layout.tsx`, wired to `--font-display` / `--font-sans` /
-  `--font-mono`. Use `font-mono` for references, dates and the `.eyebrow` motif.
+  `--font-mono` / `--ff-archivo`. Use `font-mono` for references, dates and the
+  `.eyebrow` motif. The **`.board-title`** class (Archivo expanded) is the page-title
+  signature — applied by `PageHeader` on every screen and the dashboard board header;
+  panel/card titles stay Inter. Spend the typographic boldness only there.
 - Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + `:root`/`.dark`
   shadcn tokens, mapped through `@theme inline`). Flagly's `severity-*` / `status-*`
   colour layer is semantic — use those utilities, don't hardcode hex.

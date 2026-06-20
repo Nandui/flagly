@@ -65,7 +65,7 @@ export default async function DashboardPage({
     v === null ? null : { value: v, goodWhen: "down" as const }
 
   return (
-    <div data-duty-board className="space-y-5">
+    <div className="space-y-5">
       {/* Duty-board header: the centre name posted as board signage, with a
           live "on watch" status. The one bold moment on the page. */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
