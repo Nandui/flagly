@@ -61,8 +61,26 @@ Flagly follows the **Spatial Interface Systems** design language:
 - Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + `:root`/`.dark`
   shadcn tokens, mapped through `@theme inline`). Flagly's `severity-*` / `status-*`
   colour layer is semantic — use those utilities, don't hardcode hex.
-- UI primitives live in `src/components/ui/*` (shadcn-style on Radix). Flagly
-  feature components live in `src/components/flagly/*`.
+## shadcn/ui
+
+This project uses **shadcn/ui** as its component library (config in
+`components.json`, style `new-york`, base colour `neutral`, CSS variables on,
+icon library `lucide`). The primitives in `src/components/ui/*` are the canonical
+registry components and own their source — edit them in place.
+
+- They import Radix from the **unified `radix-ui` package** (the current registry
+  convention), not the individual `@radix-ui/react-*` packages.
+- Add more with `npx shadcn@latest add <component>` — the `components.json`
+  aliases (`@/components/ui`, `@/lib/utils`, …) make them drop straight in.
+  - Note: in this sandbox the shadcn registry host (`ui.shadcn.com`) is
+    IP-blocked, so the CLI's fetch fails here. When that happens, pull the same
+    files from the registry source on GitHub raw
+    (`shadcn-ui/ui` → `apps/v4/registry/new-york-v4/ui/<name>.tsx`) and rewrite the
+    internal `@/registry/new-york-v4/{ui,lib,hooks}/…` imports to the project
+    aliases.
+- Theme = the design tokens in `globals.css`; components stay canonical, so only
+  tokens change between design iterations. Flagly feature components live in
+  `src/components/flagly/*` and compose the shadcn primitives.
 
 ## Before you commit
 

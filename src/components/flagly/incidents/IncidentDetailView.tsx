@@ -248,7 +248,7 @@ export function IncidentDetailView({
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <div className="no-scrollbar overflow-x-auto border-b">
-          <TabsList>
+          <TabsList variant="line">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="witnesses">
               Witnesses
