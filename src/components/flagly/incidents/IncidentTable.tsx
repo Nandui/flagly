@@ -4,13 +4,18 @@ import * as React from "react"
 import Link from "next/link"
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import {
   CheckCircle2,
   ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
   FileSpreadsheet,
   FileText,
   Filter,
@@ -31,8 +36,8 @@ import {
   SEVERITY_LABELS,
   SEVERITY_ORDER,
   formatDateTime,
+  pluralize,
 } from "@/lib/flagly/utils"
-import { cn } from "@/lib/utils"
 import {
   exportIncidentsToExcel,
   exportIncidentsToPdf,
@@ -84,7 +89,22 @@ const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
   label: INCIDENT_STATUS_LABELS[value],
 }))
 
+const SEVERITY_RANK: Record<IncidentSeverity, number> = {
+  MINOR: 0,
+  SIGNIFICANT: 1,
+  REPORTABLE: 2,
+  CRITICAL: 3,
+}
+const STATUS_RANK: Record<IncidentStatus, number> = {
+  DRAFT: 0,
+  OPEN: 1,
+  UNDER_INVESTIGATION: 2,
+  CLOSED: 3,
+}
+
 const ALL_CENTERS = "__all__"
+const PAGE_SIZE = 15
+const RIGHT_ALIGNED = new Set(["injuredCount"])
 
 function ActionsCell({ row }: { row: IncidentListItem }) {
   if (row.totalActionCount === 0) {
@@ -117,11 +137,14 @@ const columns: ColumnDef<IncidentListItem>[] = [
   {
     accessorKey: "type",
     header: "Type",
+    enableSorting: false,
     cell: ({ row }) => <IncidentTypeBadge type={row.original.type} />,
   },
   {
     accessorKey: "severity",
     header: "Severity",
+    sortingFn: (a, b) =>
+      SEVERITY_RANK[a.original.severity] - SEVERITY_RANK[b.original.severity],
     cell: ({ row }) => <IncidentSeverityBadge severity={row.original.severity} />,
   },
   {
@@ -141,6 +164,9 @@ const columns: ColumnDef<IncidentListItem>[] = [
   {
     accessorKey: "occurredAt",
     header: "Occurred",
+    sortingFn: (a, b) =>
+      new Date(a.original.occurredAt).getTime() -
+      new Date(b.original.occurredAt).getTime(),
     cell: ({ row }) => (
       <span className="whitespace-nowrap font-mono text-sm">
         {formatDateTime(row.original.occurredAt)}
@@ -150,16 +176,18 @@ const columns: ColumnDef<IncidentListItem>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    sortingFn: (a, b) => STATUS_RANK[a.original.status] - STATUS_RANK[b.original.status],
     cell: ({ row }) => <IncidentStatusBadge status={row.original.status} />,
   },
   {
     accessorKey: "injuredCount",
     header: "Injured",
-    cell: ({ row }) => <span>{row.original.injuredCount}</span>,
+    cell: ({ row }) => <span className="tabular-nums">{row.original.injuredCount}</span>,
   },
   {
     id: "actions",
     header: "Actions",
+    enableSorting: false,
     cell: ({ row }) => <ActionsCell row={row.original} />,
   },
   {
@@ -217,6 +245,38 @@ function MultiSelectFilter<T extends string>({
   )
 }
 
+function IncidentCardItem({ row }: { row: IncidentListItem }) {
+  return (
+    <Link
+      href={`/flagly/incidents/${row.id}`}
+      className="block rounded-[var(--radius-card)] border bg-card p-4 shadow-card transition-colors hover:border-primary/40"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-mono text-sm font-medium text-primary">
+          {row.reference}
+        </span>
+        <IncidentSeverityBadge severity={row.severity} />
+      </div>
+      <p className="mt-1.5 text-sm">
+        {row.location}
+        {row.locationDetail ? (
+          <span className="text-muted-foreground"> · {row.locationDetail}</span>
+        ) : null}
+      </p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+        <IncidentStatusBadge status={row.status} />
+        <span className="font-mono">{formatDateTime(row.occurredAt)}</span>
+        <span>{row.reportedBy}</span>
+        {row.openActionCount > 0 ? (
+          <span className="font-medium text-severity-significant">
+            {row.openActionCount} open {pluralize(row.openActionCount, "action")}
+          </span>
+        ) : null}
+      </div>
+    </Link>
+  )
+}
+
 export function IncidentTable({
   incidents,
   centers,
@@ -233,6 +293,9 @@ export function IncidentTable({
   const [statuses, setStatuses] = React.useState<Set<IncidentStatus>>(new Set())
   const [fromDate, setFromDate] = React.useState("")
   const [toDate, setToDate] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "occurredAt", desc: true },
+  ])
 
   function makeToggle<T extends string>(
     setter: React.Dispatch<React.SetStateAction<Set<T>>>
@@ -266,21 +329,17 @@ export function IncidentTable({
       if (to && occurred > to) return false
       return true
     })
-  }, [
-    incidents,
-    search,
-    centerId,
-    types,
-    severities,
-    statuses,
-    fromDate,
-    toDate,
-  ])
+  }, [incidents, search, centerId, types, severities, statuses, fromDate, toDate])
 
   const table = useReactTable({
     data: filtered,
     columns,
+    state: { sorting },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: PAGE_SIZE } },
   })
 
   const activeFilters =
@@ -341,6 +400,12 @@ export function IncidentTable({
       />
     )
   }
+
+  const rows = table.getRowModel().rows
+  const total = filtered.length
+  const { pageIndex, pageSize } = table.getState().pagination
+  const start = total === 0 ? 0 : pageIndex * pageSize + 1
+  const end = Math.min(total, (pageIndex + 1) * pageSize)
 
   return (
     <div className="space-y-4">
@@ -435,55 +500,133 @@ export function IncidentTable({
               Clear filters
             </Button>
           ) : null}
-
-          <span className="ml-auto text-sm text-muted-foreground">
-            {filtered.length} of {incidents.length}
-          </span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
+      {total === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="No incidents match your filters."
+          description="Try a different search, or clear the filters to see every incident."
+          action={
+            <Button variant="outline" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          {/* Desktop / tablet: full table */}
+          <div className="hidden overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card md:block">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                    {headerGroup.headers.map((header) => {
+                      const canSort = header.column.getCanSort()
+                      const sorted = header.column.getIsSorted()
+                      const alignRight = RIGHT_ALIGNED.has(header.column.id)
+                      const label = header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={alignRight ? "text-right" : undefined}
+                        >
+                          {canSort ? (
+                            <button
+                              type="button"
+                              onClick={header.column.getToggleSortingHandler()}
+                              className={cnSort(alignRight)}
+                              aria-label={`Sort by ${String(
+                                header.column.columnDef.header
+                              )}`}
+                            >
+                              {label}
+                              {sorted === "asc" ? (
+                                <ChevronUp className="size-3.5" />
+                              ) : sorted === "desc" ? (
+                                <ChevronDown className="size-3.5" />
+                              ) : (
+                                <ChevronsUpDown className="size-3.5 opacity-40" />
+                              )}
+                            </button>
+                          ) : (
+                            label
+                          )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
                 ))}
-              </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={
+                          RIGHT_ALIGNED.has(cell.column.id) ? "text-right" : undefined
+                        }
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile: stacked cards */}
+          <div className="space-y-3 md:hidden">
+            {rows.map((row) => (
+              <IncidentCardItem key={row.id} row={row.original} />
             ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow className={cn("hover:bg-transparent")}>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-sm text-muted-foreground"
+          </div>
+
+          {/* Pagination / count */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {total > pageSize ? `Showing ${start}–${end} of ${total}` : `${total} ${pluralize(total, "incident")}`}
+            </span>
+            {total > pageSize ? (
+              <div className="flex gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => table.previousPage()}
                 >
-                  No incidents match your filters.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!table.getCanNextPage()}
+                  onClick={() => table.nextPage()}
+                >
+                  Next
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   )
+}
+
+function cnSort(alignRight: boolean): string {
+  return [
+    "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+    alignRight ? "flex-row-reverse" : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
 }

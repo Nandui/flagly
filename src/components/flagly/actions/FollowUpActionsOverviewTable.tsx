@@ -5,8 +5,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import { toast } from "sonner"
@@ -14,6 +17,9 @@ import {
   ArrowRight,
   CheckCircle2,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
   Filter,
   Loader2,
 } from "lucide-react"
@@ -44,6 +50,15 @@ import { EmptyState } from "@/components/flagly/shared/EmptyState"
 import { ActionStatusBadge } from "@/components/flagly/actions/ActionStatusBadge"
 
 const ALL_CENTERS = "__all__"
+const PAGE_SIZE = 20
+
+// Sort order by urgency (used for the Status column sort).
+const ACTION_STATUS_RANK: Record<string, number> = {
+  OVERDUE: 0,
+  IN_PROGRESS: 1,
+  OPEN: 2,
+  COMPLETE: 3,
+}
 
 // "Outstanding" hides completed actions by default.
 type StatusFilter = "OUTSTANDING" | "OPEN" | "IN_PROGRESS" | "COMPLETE" | "OVERDUE" | "ALL"
@@ -101,6 +116,18 @@ export function FollowUpActionsOverviewTable({
   const [centerId, setCenterId] = React.useState<string>(ALL_CENTERS)
   const [status, setStatus] = React.useState<StatusFilter>("OUTSTANDING")
   const [assignedTo, setAssignedTo] = React.useState<string>("")
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "dueDate", desc: false },
+  ])
+
+  const filtersActive =
+    centerId !== ALL_CENTERS || status !== "OUTSTANDING" || assignedTo.trim() !== ""
+
+  function resetFilters() {
+    setCenterId(ALL_CENTERS)
+    setStatus("OUTSTANDING")
+    setAssignedTo("")
+  }
 
   const filtered = React.useMemo(() => {
     const query = assignedTo.trim().toLowerCase()
@@ -123,8 +150,10 @@ export function FollowUpActionsOverviewTable({
   const columns = React.useMemo<ColumnDef<ActionListItem>[]>(
     () => [
       {
-        accessorKey: "reference",
+        id: "reference",
         header: "Incident",
+        sortingFn: (a, b) =>
+          a.original.incident.reference.localeCompare(b.original.incident.reference),
         cell: ({ row }) => (
           <Link
             href={`/flagly/incidents/${row.original.incident.id}`}
@@ -135,8 +164,10 @@ export function FollowUpActionsOverviewTable({
         ),
       },
       {
-        accessorKey: "location",
+        id: "location",
         header: "Location",
+        sortingFn: (a, b) =>
+          a.original.incident.location.localeCompare(b.original.incident.location),
         cell: ({ row }) => (
           <span className="text-sm">{row.original.incident.location}</span>
         ),
@@ -144,6 +175,7 @@ export function FollowUpActionsOverviewTable({
       {
         accessorKey: "description",
         header: "Action",
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="text-sm">{row.original.description}</span>
         ),
@@ -158,6 +190,9 @@ export function FollowUpActionsOverviewTable({
       {
         accessorKey: "dueDate",
         header: "Due date",
+        sortingFn: (a, b) =>
+          new Date(a.original.dueDate).getTime() -
+          new Date(b.original.dueDate).getTime(),
         cell: ({ row }) => (
           <span className="font-mono text-sm whitespace-nowrap">
             {formatDate(row.original.dueDate)}
@@ -167,11 +202,14 @@ export function FollowUpActionsOverviewTable({
       {
         accessorKey: "status",
         header: "Status",
+        sortingFn: (a, b) =>
+          ACTION_STATUS_RANK[a.original.status] - ACTION_STATUS_RANK[b.original.status],
         cell: ({ row }) => <ActionStatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2 whitespace-nowrap">
             {row.original.status !== "COMPLETE" ? (
@@ -193,7 +231,12 @@ export function FollowUpActionsOverviewTable({
   const table = useReactTable({
     data: filtered,
     columns,
+    state: { sorting },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: PAGE_SIZE } },
   })
 
   // No actions exist at all.
@@ -256,60 +299,116 @@ export function FollowUpActionsOverviewTable({
         />
       </div>
 
-      <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={header.id === "actions" ? "text-right" : undefined}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={CheckSquare}
+          title="No actions match your filters."
+          description="Try a different status or assignee, or reset the filters."
+          action={
+            filtersActive ? (
+              <Button variant="outline" onClick={resetFilters}>
+                Reset filters
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-card">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                    {headerGroup.headers.map((header) => {
+                      const canSort = header.column.getCanSort()
+                      const sorted = header.column.getIsSorted()
+                      const label = header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={header.id === "actions" ? "text-right" : undefined}
+                        >
+                          {canSort ? (
+                            <button
+                              type="button"
+                              onClick={header.column.getToggleSortingHandler()}
+                              className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                            >
+                              {label}
+                              {sorted === "asc" ? (
+                                <ChevronUp className="size-3.5" />
+                              ) : sorted === "desc" ? (
+                                <ChevronDown className="size-3.5" />
+                              ) : (
+                                <ChevronsUpDown className="size-3.5 opacity-40" />
+                              )}
+                            </button>
+                          ) : (
+                            label
+                          )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length === 0 ? (
-              <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-sm text-muted-foreground"
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className={cn(
+                      row.original.status === "OVERDUE" &&
+                        "border-l-4 border-l-severity-critical bg-severity-critical-bg/40"
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm tabular-nums text-muted-foreground">
+              {filtered.length > PAGE_SIZE
+                ? `Showing ${table.getState().pagination.pageIndex * PAGE_SIZE + 1}–${Math.min(
+                    filtered.length,
+                    (table.getState().pagination.pageIndex + 1) * PAGE_SIZE
+                  )} of ${filtered.length}`
+                : `${filtered.length} action${filtered.length === 1 ? "" : "s"}`}
+            </span>
+            {filtered.length > PAGE_SIZE ? (
+              <div className="flex gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => table.previousPage()}
                 >
-                  No actions match your filters.
-                </TableCell>
-              </TableRow>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className={cn(
-                    row.original.status === "OVERDUE" &&
-                      "border-l-4 border-l-severity-critical bg-severity-critical-bg/40"
-                  )}
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!table.getCanNextPage()}
+                  onClick={() => table.nextPage()}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  Next
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   )
 }
