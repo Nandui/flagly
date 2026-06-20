@@ -48,8 +48,8 @@ export function ActivityChart({ data }: { data: ActivityPoint[] }) {
           <BarChart data={data} margin={{ top: 8, right: 4, left: -18, bottom: 0 }} barCategoryGap="28%">
             <defs>
               <linearGradient id="activityBar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#93c5fd" />
+                <stop offset="0%" stopColor="var(--chart-bar-from)" />
+                <stop offset="100%" stopColor="var(--chart-bar-to)" />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />

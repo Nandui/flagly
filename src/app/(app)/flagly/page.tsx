@@ -15,6 +15,7 @@ import { getDashboardData } from "@/lib/flagly/data/dashboard"
 import {
   INCIDENT_TYPE_LABELS,
   TIMEFRAME_LABELS,
+  formatBoardDate,
   formatTime,
   parseTimeframe,
   pluralize,
@@ -64,16 +65,27 @@ export default async function DashboardPage({
     v === null ? null : { value: v, goodWhen: "down" as const }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        title="Dashboard"
-        description={`Incident overview · ${activeCenter.name}`}
-      >
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="size-3.5" />
-          Updated {formatTime(data.generatedAt)}
-        </p>
-      </PageHeader>
+    <div data-duty-board className="space-y-5">
+      {/* Duty-board header: the centre name posted as board signage, with a
+          live "on watch" status. The one bold moment on the page. */}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-1">
+          <p className="eyebrow">Duty board · {formatBoardDate(data.generatedAt)}</p>
+          <h1 className="board-title text-3xl leading-none sm:text-4xl">
+            {activeCenter.name}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Incident overview · {period}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 self-start rounded-full border border-primary/30 bg-accent px-3 py-1 font-mono text-xs font-medium text-accent-foreground">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          </span>
+          On watch · updated {formatTime(data.generatedAt)}
+        </span>
+      </header>
 
       <DashboardFilters
         centers={centers}

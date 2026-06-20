@@ -45,6 +45,11 @@
   --ff-display: "Inter";
   --ff-body: "Inter";
   --ff-mono: "JetBrains Mono";
+  --ff-archivo: "Archivo"; /* expanded grotesque — Duty Board display face */
+
+  /* dashboard activity-chart bar gradient (overridable per visual direction) */
+  --chart-bar-from: #3b82f6;
+  --chart-bar-to: #93c5fd;
 
   --background: #ffffff;
   --foreground: #111827;
@@ -315,6 +320,42 @@
 }
 .bar-amber {
   background-image: linear-gradient(90deg, #fcd34d, #d97706);
+}
+
+/* ------------------------------------------------------------------ *
+ * "Duty board" visual direction — pilot, scoped to the dashboard.
+ * Re-skins the dashboard as a leisure-centre operations board: an
+ * expanded signage display face (Archivo) for the board title and a
+ * teal "on watch" accent, while the rest of Flagly keeps its blue
+ * identity. Pure token overrides — the components stay canonical, so
+ * this is a reversible experiment, not a fork.
+ * ------------------------------------------------------------------ */
+[data-duty-board] {
+  --primary: #0f766e; /* teal-700 — the "on watch" accent */
+  --primary-foreground: #ffffff;
+  --ring: #14b8a6; /* teal-500 */
+  --accent: #ccfbf1; /* teal-100 */
+  --accent-foreground: #115e59; /* teal-800 */
+
+  /* activity chart + cool distribution bars follow the teal accent */
+  --chart-bar-from: #0f766e;
+  --chart-bar-to: #5eead4;
+  --chart-1: #0f766e;
+  --chart-2: #14b8a6;
+}
+
+[data-duty-board] .bar-cool {
+  background-image: linear-gradient(90deg, #5eead4, #0f766e);
+}
+
+/* Signature: the board title set in expanded Archivo, like signage
+   posted on a physical duty board. Boldness lives here and nowhere else. */
+.board-title {
+  font-family: var(--ff-archivo), var(--ff-display), ui-sans-serif, system-ui,
+    sans-serif;
+  font-stretch: 125%;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 /* Soft panel depth on the white canvas */

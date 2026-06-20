@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Panel } from "@/components/flagly/shared/Panel"
 import { IncidentSeverityBadge } from "@/components/flagly/incidents/IncidentSeverityBadge"
-import { formatDate, pluralize } from "@/lib/flagly/utils"
+import { formatDate, pluralize, severityBorderClass } from "@/lib/flagly/utils"
 import type { DashboardAttention } from "@/lib/flagly/types"
 
 /**
@@ -56,7 +56,7 @@ export function AttentionPanel({ attention }: { attention: DashboardAttention })
           <li key={`${a.reference}-${i}`}>
             <Link
               href={`/flagly/incidents/${a.incidentId}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/60"
+              className="flex items-center gap-3 rounded-r-lg border-l-[3px] border-l-severity-critical py-2 pl-2.5 pr-2 transition-colors hover:bg-muted/60"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{a.description}</p>
@@ -85,7 +85,10 @@ export function AttentionPanel({ attention }: { attention: DashboardAttention })
           <li key={i.id}>
             <Link
               href={`/flagly/incidents/${i.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/60"
+              className={cn(
+                "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2 pl-2.5 pr-2 transition-colors hover:bg-muted/60",
+                severityBorderClass(i.severity)
+              )}
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">

@@ -194,6 +194,12 @@ export function formatTime(value: Date | string | null | undefined): string {
   return format(asDate(value), "HH:mm")
 }
 
+/** "Saturday 20 June" — board / shift-log style */
+export function formatBoardDate(value: Date | string | null | undefined): string {
+  if (!value) return "—"
+  return format(asDate(value), "EEEE d MMMM")
+}
+
 /** "yyyy-MM-dd" for <input type="date"> */
 export function toDateInputValue(value: Date | string): string {
   return format(asDate(value), "yyyy-MM-dd")
