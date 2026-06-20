@@ -83,10 +83,10 @@ Read this before changing code.
 
 Flagly follows the **Spatial Interface Systems** design language:
 
-- **Palette** — blue accent (`--primary` `#3b82f6`, accent/`--ring` `#2563eb`) on
-  **white surfaces** (canvas, sidebar and cards are all white), with `#111827`/
-  `#4b5563` text and `#e5e7eb` borders. The sidebar is white with a blue-50 active
-  state.
+- **Palette** — blue accent (`--primary` `#3b82f6`, accent/`--ring` `#2563eb`) on a
+  **grey canvas with white cards**, `#111827`/`#4b5563` text, `#e5e7eb` borders. The
+  shell recedes: the sidebar is **tonal** (`--sidebar` matches the canvas, blue-50
+  active state) so the white work-surface cards are the focus.
 - **Radii** — 11px cards (`rounded-[var(--radius-card)]`), 7px controls
   (`--radius` = `0.4375rem`), pill badges. Panels sit on the white canvas with a
   subtle border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
@@ -119,6 +119,20 @@ Flagly follows the **Spatial Interface Systems** design language:
   `.eyebrow` motif or `text-xs uppercase tracking-wide text-muted-foreground`.
 - Clickable cards get the hover lift (`hover:-translate-y-0.5
   hover:shadow-card-lift`); page transitions fade in via the shell's motion wrapper.
+- **Dashboards lead with action:** an `AttentionPanel` (overdue actions + open
+  reportable incidents) sits above the KPI row; `MetricCard` takes a `delta`
+  (`{ value, goodWhen }`) for vs-previous-period comparison; the header shows an
+  "Updated …" freshness time. Charts must ship an accessible alternative — see
+  `ActivityChart`'s `sr-only` data table with the SVG `aria-hidden`.
+- **Tables (list pages):** TanStack Table with `getSortedRowModel` (sortable
+  headers + chevron affordance; rank-based `sortingFn` for severity/status) and
+  `getPaginationRowModel` (page footer). Below `md`, render a stacked **card**
+  layout instead of horizontal scroll (see `IncidentTable`). No-results is an
+  actionable `EmptyState` (Clear/Reset filters), never a bare "no rows" cell.
+- **Forms:** validate inline — set per-field messages via `Field`'s `error` slot
+  with `aria-invalid` on the control, plus an error-summary banner that focuses
+  the field; map server `fieldErrors` into the same display. Toasts are for
+  submit-level success/failure only (see `IncidentForm`).
 
 ## shadcn/ui
 
@@ -152,4 +166,6 @@ registry components and own their source — edit them in place.
 ```bash
 npm run typecheck   # must pass
 npm run build       # must pass
+npm run test:e2e    # Playwright smoke + axe a11y gate (CI/local; needs a built
+                    # app, a seeded DB, and `npx playwright install chromium`)
 ```

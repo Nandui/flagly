@@ -72,6 +72,7 @@ Deploying to Vercel + Neon? See **[DEPLOY.md](./DEPLOY.md)**.
 | `npm run build` | `prisma generate` + production build |
 | `npm run start` | Run the production build |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run test:e2e` | Playwright smoke + axe a11y gate (needs a built app, seeded DB, `npx playwright install chromium`) |
 | `npm run db:migrate` | Create/apply a dev migration |
 | `npm run db:seed` | Seed demo data |
 | `npm run db:reset` | Reset the database and re-seed |
