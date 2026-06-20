@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils"
 
 /**
- * The standard content surface for the app: a white card on the grey canvas
- * with a soft shadow and the shared card radius. Optionally renders a borderless
- * header (title + description + right-aligned action).
+ * The standard content surface for the app: a white card on the cool-slate
+ * canvas with a soft shadow and the shared card radius. Optionally renders a
+ * header (title + description + right-aligned action) divided from the body —
+ * the Centrely card convention shared with Riskly.
  *
  * For flush content (e.g. a table), pass `contentClassName="p-0"`.
  */
@@ -31,7 +32,7 @@ export function Panel({
       )}
     >
       {hasHeader ? (
-        <div className="flex items-start justify-between gap-3 px-5 pt-5">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="space-y-0.5">
             {title ? (
               <h3 className="text-sm font-semibold text-foreground">{title}</h3>

@@ -4,197 +4,170 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ *
- * Spatial Interface Systems design system — "Duty board" identity
- * Teal "on watch" accent · white surfaces · light borders ·
- * Archivo (expanded) signage titles + Inter + JetBrains Mono
+ * Centrely shared design system (matches Riskly) — indigo accent on a
+ * cool-slate canvas with white surfaces. Space Grotesk + IBM Plex Sans/Mono.
+ * The severity palette (green→amber→orange→red) is SEMANTIC ONLY: reserved
+ * for incident severity bands, never decoration.
  * ------------------------------------------------------------------ */
 @theme {
-  /* neutrals */
-  --color-bg: #ffffff;
-  --color-canvas: #f1f3f5; /* grey app canvas behind white cards */
+  /* neutrals — cool slate */
+  --color-bg: #f3f6f8;
+  --color-canvas: #f3f6f8; /* app canvas behind white cards (SidebarInset) */
   --color-surface: #ffffff;
-  --color-surface-2: #f3f4f6;
-  --color-ink: #111827;
-  --color-ink-soft: #4b5563;
-  --color-faint: #9ca3af;
-  --color-line: #e5e7eb;
-  --color-line-strong: #d1d5db;
+  --color-surface-2: #f8fafc;
+  --color-ink: #0f1c2e;
+  --color-ink-soft: #334155;
+  --color-faint: #94a3b8;
+  --color-line: #e3e8ee;
+  --color-line-strong: #cbd5e1;
 
-  /* brand — teal ("on watch") */
-  --color-brand: #0f766e;
-  --color-brand-strong: #115e59;
-  --color-brand-soft: #f0fdfa;
-  --color-brand-ink: #134e4a;
+  /* brand — deep teal (legacy; the primary accent is indigo, in :root) */
+  --color-brand: #0e7c86;
+  --color-brand-strong: #0a5b63;
+  --color-brand-soft: #e4f2f3;
+  --color-brand-ink: #06363b;
 
-  /* chrome surface — white sidebar */
-  --color-sidebar-2: #f3f4f6;
-  --color-sidebar-line: #e5e7eb;
-  --color-sidebar-ink: #111827;
-  --color-sidebar-muted: #6b7280;
+  /* chrome surface — sidebar tonal helpers */
+  --color-sidebar-2: #f1f5f9;
+  --color-sidebar-line: #e3e8ee;
+  --color-sidebar-ink: #0f1c2e;
+  --color-sidebar-muted: #64748b;
 
-  /* typefaces (loaded via <link> in layout.tsx, wired through :root) */
+  /* Flagly severity palette — SEMANTIC ONLY (= Riskly's risk bands) */
+  --color-severity-minor: #15803d;
+  --color-severity-minor-bg: #dcfce7;
+  --color-severity-minor-line: #86efac;
+  --color-severity-significant: #a16207;
+  --color-severity-significant-bg: #fef3c7;
+  --color-severity-significant-line: #fcd34d;
+  --color-severity-reportable: #c2410c;
+  --color-severity-reportable-bg: #ffe8d6;
+  --color-severity-reportable-line: #fdba74;
+  --color-severity-critical: #b91c1c;
+  --color-severity-critical-bg: #fee2e2;
+  --color-severity-critical-line: #fca5a5;
+
+  /* Incident status accents — constant across themes (like Riskly's statuses) */
+  --color-status-draft: #6b7280;
+  --color-status-draft-bg: #f1f5f9;
+  --color-status-open: #0e7c86; /* teal — active/open */
+  --color-status-open-bg: #e4f2f3;
+  --color-status-investigating: #a16207; /* amber — under review */
+  --color-status-investigating-bg: #fef3c7;
+  --color-status-closed: #15803d; /* green — resolved */
+  --color-status-closed-bg: #dcfce7;
+
+  /* typefaces (wired by next/font in layout.tsx) */
   --font-display: var(--ff-display), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--ff-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --radius-card: 0.6875rem; /* 11px */
+  --radius-card: 0.75rem;
 }
 
+/* ------------------------------------------------------------------ *
+ * shadcn/ui tokens — indigo accent, light-first
+ * ------------------------------------------------------------------ */
 :root {
-  --radius: 0.4375rem; /* control 7px */
+  --radius: 0.625rem;
 
-  --ff-display: "Inter";
-  --ff-body: "Inter";
-  --ff-mono: "JetBrains Mono";
-  --ff-archivo: "Archivo"; /* expanded grotesque — board signage / page titles */
-
-  /* dashboard activity-chart bar gradient (teal "on watch" accent) */
-  --chart-bar-from: #0f766e;
-  --chart-bar-to: #5eead4;
-
-  --background: #ffffff;
-  --foreground: #111827;
+  --background: #f3f6f8;
+  --foreground: #0f1c2e;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #0f1c2e;
   --popover: #ffffff;
-  --popover-foreground: #111827;
+  --popover-foreground: #0f1c2e;
 
-  --primary: #0f766e; /* teal-700 */
+  --primary: #4f46e5; /* indigo-600 */
   --primary-foreground: #ffffff;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #111827;
-  --muted: #f3f4f6;
-  --muted-foreground: #4b5563;
-  --accent: #f0fdfa; /* teal-50 */
-  --accent-foreground: #0f766e; /* teal-700 */
+  --secondary: #eef1f5;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eef2ff; /* indigo-50 */
+  --accent-foreground: #3730a3; /* indigo-800 */
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #0f766e;
+  --border: #e3e8ee;
+  --input: #e2e8f0;
+  --ring: #6366f1; /* indigo-500 */
 
-  --chart-1: #0f766e; /* teal-700 */
-  --chart-2: #14b8a6; /* teal-500 */
-  --chart-3: #0ea5e9; /* sky-500 — kept for series contrast */
-  --chart-4: #2dd4bf; /* teal-400 */
-  --chart-5: #5eead4; /* teal-300 */
+  --chart-1: #4f46e5;
+  --chart-2: #0e7c86;
+  --chart-3: #f59e0b;
+  --chart-4: #64748b;
+  --chart-5: #15803d;
 
-  /* sidebar — tonal chrome (matches the canvas) so white cards are the focus */
-  --sidebar: #f1f3f5;
-  --sidebar-foreground: #4b5563;
-  --sidebar-primary: #0f766e;
+  /* dashboard activity-chart bar gradient (indigo accent) */
+  --chart-bar-from: #4f46e5;
+  --chart-bar-to: #a5b4fc;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-primary: #4f46e5;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0fdfa; /* teal-50 active */
-  --sidebar-accent-foreground: #0f766e; /* teal-700 */
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #0f766e;
-
-  /* Flagly severity tokens (semantic — kept distinct) */
-  --severity-minor: #15803d;
-  --severity-minor-bg: #dcfce7;
-  --severity-minor-line: #86efac;
-  --severity-significant: #a16207;
-  --severity-significant-bg: #fef3c7;
-  --severity-significant-line: #fcd34d;
-  --severity-reportable: #c2410c;
-  --severity-reportable-bg: #ffe8d6;
-  --severity-reportable-line: #fdba74;
-  --severity-critical: #b91c1c;
-  --severity-critical-bg: #fee2e2;
-  --severity-critical-line: #fca5a5;
-
-  /* Incident status tokens (open = brand teal, matching the accent) */
-  --status-draft: #6b7280;
-  --status-draft-bg: #f3f4f6;
-  --status-open: #0f766e;
-  --status-open-bg: #f0fdfa;
-  --status-investigating: #a16207;
-  --status-investigating-bg: #fef3c7;
-  --status-closed: #15803d;
-  --status-closed-bg: #dcfce7;
+  --sidebar-accent: #eef2ff; /* indigo-50 — active nav background */
+  --sidebar-accent-foreground: #3730a3; /* indigo-800 — active nav text */
+  --sidebar-border: #e3e8ee;
+  --sidebar-ring: #6366f1;
 }
 
 .dark {
-  /* deep-charcoal environment with teal accent */
-  --background: #0b1220;
-  --foreground: #e5e7eb;
-  --card: #111827;
-  --card-foreground: #e5e7eb;
-  --popover: #111827;
-  --popover-foreground: #e5e7eb;
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+  --card: #0f172a;
+  --card-foreground: #e2e8f0;
+  --popover: #0f172a;
+  --popover-foreground: #e2e8f0;
 
-  --primary: #2dd4bf; /* teal-400 */
-  --primary-foreground: #0b1220;
-  --secondary: #1f2937;
-  --secondary-foreground: #e5e7eb;
-  --muted: #1f2937;
-  --muted-foreground: #9ca3af;
-  --accent: #134e4a; /* teal-900 */
-  --accent-foreground: #99f6e4; /* teal-200 */
+  --primary: #818cf8; /* indigo-400 */
+  --primary-foreground: #1e1b4b;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #312e81;
+  --accent-foreground: #e0e7ff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --border: #1f2937;
+  --border: #1e293b;
   --input: #243044;
-  --ring: #2dd4bf;
+  --ring: #818cf8;
 
-  --chart-bar-from: #14b8a6;
-  --chart-bar-to: #2dd4bf;
+  --chart-1: #818cf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #fbbf24;
+  --chart-4: #94a3b8;
+  --chart-5: #4ade80;
 
-  --chart-1: #2dd4bf; /* teal-400 */
-  --chart-2: #14b8a6; /* teal-500 */
-  --chart-3: #38bdf8; /* sky-400 — kept for series contrast */
-  --chart-4: #5eead4; /* teal-300 */
-  --chart-5: #0d9488; /* teal-600 */
+  --chart-bar-from: #818cf8;
+  --chart-bar-to: #c7d2fe;
 
-  --sidebar: #0b1220;
+  --sidebar: #070f14;
   --sidebar-foreground: #cbd5e1;
-  --sidebar-primary: #2dd4bf;
-  --sidebar-primary-foreground: #0b1220;
-  --sidebar-accent: #134e4a; /* teal-900 */
-  --sidebar-accent-foreground: #99f6e4; /* teal-200 */
-  --sidebar-border: #1f2937;
-  --sidebar-ring: #2dd4bf;
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0e2a31;
+  --sidebar-accent-foreground: #e0e7ff;
+  --sidebar-border: #16242b;
+  --sidebar-ring: #818cf8;
 
   /* neutrals — dark */
-  --color-bg: #0b1220;
-  --color-canvas: #0b1220;
-  --color-surface: #111827;
-  --color-surface-2: #1f2937;
-  --color-ink: #e5e7eb;
+  --color-bg: #0b1120;
+  --color-canvas: #0b1120;
+  --color-surface: #0f172a;
+  --color-surface-2: #1e293b;
+  --color-ink: #e2e8f0;
   --color-ink-soft: #cbd5e1;
-  --color-faint: #6b7280;
-  --color-line: #1f2937;
-  --color-line-strong: #374151;
-  --color-sidebar-2: #1f2937;
-  --color-sidebar-line: #1f2937;
-  --color-sidebar-ink: #e5e7eb;
-  --color-sidebar-muted: #9ca3af;
-
-  /* Flagly severity — dark */
-  --severity-minor: #4ade80;
-  --severity-minor-bg: #052e1a;
-  --severity-minor-line: #166534;
-  --severity-significant: #fbbf24;
-  --severity-significant-bg: #3b2705;
-  --severity-significant-line: #854d0e;
-  --severity-reportable: #fb923c;
-  --severity-reportable-bg: #431407;
-  --severity-reportable-line: #9a3412;
-  --severity-critical: #f87171;
-  --severity-critical-bg: #450a0a;
-  --severity-critical-line: #991b1b;
-
-  /* Incident status — dark (open = brand teal) */
-  --status-draft: #9ca3af;
-  --status-draft-bg: #1f2937;
-  --status-open: #2dd4bf;
-  --status-open-bg: #134e4a;
-  --status-investigating: #fbbf24;
-  --status-investigating-bg: #3b2705;
-  --status-closed: #4ade80;
-  --status-closed-bg: #052e1a;
+  --color-faint: #64748b;
+  --color-line: #1e293b;
+  --color-line-strong: #334155;
+  --color-sidebar-2: #16242b;
+  --color-sidebar-line: #16242b;
+  --color-sidebar-ink: #e2e8f0;
+  --color-sidebar-muted: #94a3b8;
 }
 
 @theme inline {
@@ -231,34 +204,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Flagly severity */
-  --color-severity-minor: var(--severity-minor);
-  --color-severity-minor-bg: var(--severity-minor-bg);
-  --color-severity-minor-line: var(--severity-minor-line);
-  --color-severity-significant: var(--severity-significant);
-  --color-severity-significant-bg: var(--severity-significant-bg);
-  --color-severity-significant-line: var(--severity-significant-line);
-  --color-severity-reportable: var(--severity-reportable);
-  --color-severity-reportable-bg: var(--severity-reportable-bg);
-  --color-severity-reportable-line: var(--severity-reportable-line);
-  --color-severity-critical: var(--severity-critical);
-  --color-severity-critical-bg: var(--severity-critical-bg);
-  --color-severity-critical-line: var(--severity-critical-line);
-
-  /* Flagly status */
-  --color-status-draft: var(--status-draft);
-  --color-status-draft-bg: var(--status-draft-bg);
-  --color-status-open: var(--status-open);
-  --color-status-open-bg: var(--status-open-bg);
-  --color-status-investigating: var(--status-investigating);
-  --color-status-investigating-bg: var(--status-investigating-bg);
-  --color-status-closed: var(--status-closed);
-  --color-status-closed-bg: var(--status-closed-bg);
-
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-  --radius-xl: calc(var(--radius) + 6px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer base {
@@ -283,7 +232,7 @@
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.012em;
   }
 
   ::selection {
@@ -292,61 +241,49 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
     border-radius: 2px;
   }
 
+  /* tabular figures for data tables / scores */
   .tnum {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Eyebrow / technical-label motif (JetBrains Mono) */
+/* Eyebrow / inspection-tag label motif (IBM Plex Mono) */
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
 
-/* Signature: page titles set in expanded Archivo, like signage posted on a
-   physical duty board. Applied to PageHeader (every screen) + the dashboard
-   board header. The one bold typographic move; everything else stays Inter. */
-.board-title {
-  font-family: var(--ff-archivo), var(--ff-display), ui-sans-serif, system-ui,
-    sans-serif;
-  font-stretch: 125%;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-}
-
-/* Gradient progress-bar fills (dashboard distribution panels) */
-.bar-warm {
-  background-image: linear-gradient(90deg, #fb923c, #ef4444);
-}
+/* Gradient progress-bar fills (dashboard distribution panels) — brand hues
+   (indigo / teal), never the semantic severity palette. */
 .bar-cool {
-  background-image: linear-gradient(90deg, #5eead4, #0f766e);
+  background-image: linear-gradient(90deg, #818cf8, #4f46e5);
+}
+.bar-warm {
+  background-image: linear-gradient(90deg, #5eead4, #0e7c86);
 }
 .bar-green {
-  background-image: linear-gradient(90deg, #4ade80, #16a34a);
+  background-image: linear-gradient(90deg, #4ade80, #15803d);
 }
 .bar-amber {
-  background-image: linear-gradient(90deg, #fcd34d, #d97706);
+  background-image: linear-gradient(90deg, #fcd34d, #a16207);
 }
 
-/* Soft panel depth on the white canvas */
+/* Soft panel depth on the white surfaces (matches Riskly's shadow-xs scale) */
 .shadow-card {
-  box-shadow:
-    0 1px 2px rgba(17, 24, 39, 0.04),
-    0 1px 3px rgba(17, 24, 39, 0.06);
+  box-shadow: 0 1px 2px 0 rgb(15 28 46 / 0.05);
 }
 .shadow-card-lift {
   box-shadow:
-    0 4px 6px -1px rgba(17, 24, 39, 0.08),
-    0 2px 4px -2px rgba(17, 24, 39, 0.06);
+    0 4px 12px -2px rgb(15 28 46 / 0.1),
+    0 2px 4px -2px rgb(15 28 46 / 0.06);
 }
 
 /* Comfortable touch targets for the incident form on phones (the core

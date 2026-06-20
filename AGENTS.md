@@ -81,30 +81,36 @@ Read this before changing code.
 
 ## Design system
 
-Flagly follows the **Spatial Interface Systems** design language, given a
-**"Duty board"** identity — the app reads like a leisure-centre operations board:
+Flagly shares the **Centrely** design system with its sibling app **Riskly** —
+Flagly must read as an extension of Riskly. Match it exactly; when in doubt, copy
+Riskly's token or pattern rather than inventing one.
 
-- **Palette** — teal "on watch" accent (`--primary` / `--ring` `#0f766e` teal-700,
-  `--accent` `#f0fdfa` teal-50) on a **grey canvas with white cards**,
-  `#111827`/`#4b5563` text, `#e5e7eb` borders. Open-incident status shares the brand
-  teal. The shell recedes: the sidebar is **tonal** (`--sidebar` matches the canvas,
-  teal-50 active state) so the white work-surface cards are the focus. Severity
-  (green→amber→orange→red) stays the loud, independent signal.
-- **Radii** — 11px cards (`rounded-[var(--radius-card)]`), 7px controls
-  (`--radius` = `0.4375rem`), pill badges. Panels sit on the white canvas with a
-  subtle border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
-- **Type** — Inter (body + most headings), JetBrains Mono for labels/data, and
-  **Archivo (expanded, `wdth 125`)** for the signage signature. All three load via
-  `<link>` in `src/app/layout.tsx`, wired to `--font-display` / `--font-sans` /
-  `--font-mono` / `--ff-archivo`. Use `font-mono` for references, dates and the
-  `.eyebrow` motif. The **`.board-title`** class (Archivo expanded) is the page-title
-  signature — applied by `PageHeader` on every screen and the dashboard board header;
-  panel/card titles stay Inter. Spend the typographic boldness only there.
-- Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + `:root`/`.dark`
-  shadcn tokens, mapped through `@theme inline`). Flagly's `severity-*` / `status-*`
-  colour layer is semantic — use those utilities, don't hardcode hex.
-- The app is an **analytics-dashboard** layout: a grey canvas (`bg-canvas`, set on
-  `SidebarInset`) with white cards floating on it.
+- **Palette** — **indigo** accent (`--primary` `#4f46e5` indigo-600, `--ring`
+  `#6366f1`, `--accent` `#eef2ff` indigo-50 / `--accent-foreground` `#3730a3`) on a
+  **cool-slate canvas** (`#f3f6f8`) with **white cards** and a **white sidebar**.
+  Text is `#0f1c2e` ink / `#64748b` muted; borders `#e3e8ee`. Active nav uses the
+  indigo-50 accent. Severity (green→amber→orange→red) is the byte-for-byte
+  **risk palette from Riskly** and is semantic — never decoration.
+- **Radii** — 12px cards (`rounded-[var(--radius-card)]` = `0.75rem`), 10px controls
+  (`--radius` = `0.625rem`), pill badges. Cards are `border border-line bg-surface`
+  with the subtle `.shadow-card` depth (≈ Tailwind `shadow-xs`; hover →
+  `.shadow-card-lift`) and a `border-b` header divider.
+- **Type** — **Space Grotesk** (display/headings) · **IBM Plex Sans** (body) ·
+  **IBM Plex Mono** (labels/data), loaded via **`next/font/google`** in
+  `src/app/layout.tsx` and wired to `--font-display` / `--font-sans` / `--font-mono`
+  — same families and mechanism as Riskly. Use `font-mono` for references, dates and
+  the `.eyebrow` motif (mono, uppercase, `0.14em` tracking).
+- Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + severity/status
+  palette + `:root`/`.dark` shadcn tokens, mapped through `@theme inline`). Flagly's
+  `severity-*` / `status-*` colour layer is semantic — use those utilities, don't
+  hardcode hex.
+- The app is an **analytics-dashboard** layout: a cool-slate canvas (`bg-canvas`, set
+  on `SidebarInset`) with white cards floating on it.
+- **Note on libraries:** Riskly loads Radix via individual `@radix-ui/react-*`
+  packages and Flagly via the unified `radix-ui` package (the current shadcn
+  convention) — this is an intentional, invisible implementation difference; the
+  shared design layer (Tailwind v4 tokens, shadcn new-york/slate, recharts, motion,
+  sonner, lucide) is identical.
 
 ### House style — build every screen this way
 
