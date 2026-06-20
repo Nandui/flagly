@@ -70,6 +70,12 @@ registry components and own their source — edit them in place.
 
 - They import Radix from the **unified `radix-ui` package** (the current registry
   convention), not the individual `@radix-ui/react-*` packages.
+- The **full new-york-v4 registry is vendored** in `src/components/ui/*` (plus the
+  `use-mobile` hook in `src/hooks/`), so components are available offline — most
+  are unused until imported. The app shell uses the **official shadcn `Sidebar`**
+  (`SidebarProvider` / `Sidebar` / `SidebarMenu…` in `FlaglyShell` +
+  `FlaglySidebar`). (`combobox` is omitted — it depends on Base UI, a separate
+  primitive lib.)
 - Add more with `npx shadcn@latest add <component>` — the `components.json`
   aliases (`@/components/ui`, `@/lib/utils`, …) make them drop straight in.
   - Note: in this sandbox the shadcn registry host (`ui.shadcn.com`) is
