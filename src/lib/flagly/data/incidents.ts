@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { startOfDay } from "date-fns"
 import type { Prisma } from "@prisma/client"
 
@@ -76,7 +77,9 @@ export async function getIncidents(options?: {
 
 // ─── Detail ────────────────────────────────────────────────────────────────────
 
-export async function getIncidentDetail(id: string): Promise<IncidentDetail | null> {
+// Cached per request so the page and its generateMetadata share one fetch
+// (otherwise every detail view runs the sweep + relation query twice).
+export const getIncidentDetail = cache(async (id: string): Promise<IncidentDetail | null> => {
   // Refresh this incident's overdue actions before reading.
   const today = startOfDay(new Date())
   await prisma.followUpAction.updateMany({
@@ -99,7 +102,7 @@ export async function getIncidentDetail(id: string): Promise<IncidentDetail | nu
   })
 
   return incident
-}
+})
 
 export async function incidentExists(id: string): Promise<boolean> {
   const count = await prisma.incident.count({ where: { id } })

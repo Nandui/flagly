@@ -18,6 +18,12 @@ Read this before changing code.
 - **Reads:** async Server Components → `src/lib/flagly/data/*`. These return plain,
   serializable shapes from `src/lib/flagly/types.ts` (Dates pass through the RSC
   boundary fine). Don't fetch on the client for initial load.
+- **Per-request caching (perf):** reads that several components hit in one render
+  are wrapped in React `cache()` so they run once per request — `getCurrentUser`,
+  `listCenters`, `getActiveCenter`, `getFlaglyContext` and `getIncidentDetail`
+  (the detail page + its `generateMetadata` share one fetch). Wrap new shared
+  reads the same way; each DB round-trip is expensive on Neon. Routes under
+  `/flagly` show `loading.tsx` instantly on navigation.
 - **Mutations:** Server Actions in `src/lib/flagly/actions/*`, each marked
   `"use server"`. Every action:
   1. checks the session (`getCurrentUser`),

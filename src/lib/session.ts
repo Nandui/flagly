@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
@@ -10,7 +11,9 @@ export type SessionUser = {
   role: string
 }
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
+// Cached per request: the layout, page and any server components/actions in a
+// single render share one session decode instead of calling auth() repeatedly.
+export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const session = await auth()
   if (!session?.user?.id) return null
   return {
@@ -19,7 +22,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: session.user.email ?? "",
     role: session.user.role ?? DEFAULT_ROLE,
   }
-}
+})
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser()
