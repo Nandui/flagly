@@ -33,6 +33,7 @@ export default async function IncidentDetailPage({
     <IncidentDetailView
       incident={incident}
       currentUserName={user.name}
+      isAdmin={user.role === "Admin"}
       initialTab={tab}
     />
   )

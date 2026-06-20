@@ -13,6 +13,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Trash2,
   UserRound,
   Users,
 } from "lucide-react"
@@ -25,6 +26,17 @@ import type {
 
 import { Button } from "@/components/ui/button"
 import { Panel } from "@/components/flagly/shared/Panel"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Tooltip,
@@ -44,7 +56,11 @@ import { FollowUpActionForm } from "@/components/flagly/actions/FollowUpActionFo
 import { FollowUpActionTable } from "@/components/flagly/actions/FollowUpActionTable"
 import { IncidentTimeline, type TimelineEvent } from "@/components/flagly/shared/IncidentTimeline"
 import { daysSince, formatDateTime } from "@/lib/flagly/utils"
-import { setIncidentStatus, submitDraft } from "@/lib/flagly/actions/incidents"
+import {
+  deleteIncident,
+  setIncidentStatus,
+  submitDraft,
+} from "@/lib/flagly/actions/incidents"
 import type { IncidentDetail } from "@/lib/flagly/types"
 
 type SheetState =
@@ -59,10 +75,12 @@ const TAB_VALUES = ["overview", "witnesses", "injured", "actions"]
 export function IncidentDetailView({
   incident,
   currentUserName,
+  isAdmin,
   initialTab,
 }: {
   incident: IncidentDetail
   currentUserName: string
+  isAdmin: boolean
   initialTab?: string
 }) {
   const router = useRouter()
@@ -71,6 +89,21 @@ export function IncidentDetailView({
   )
   const [sheet, setSheet] = React.useState<SheetState>(null)
   const [statusPending, startStatusTransition] = React.useTransition()
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [deletePending, startDeleteTransition] = React.useTransition()
+
+  function handleDelete() {
+    startDeleteTransition(async () => {
+      const result = await deleteIncident(incident.id)
+      if (result.ok) {
+        toast.success("Incident deleted.")
+        router.push("/flagly/incidents")
+      } else {
+        toast.error(result.error)
+        setDeleteOpen(false)
+      }
+    })
+  }
 
   const openActionCount = incident.followUpActions.filter(
     (a) => a.status !== "COMPLETE"
@@ -202,6 +235,48 @@ export function IncidentDetailView({
             <Plus />
             Add injured party
           </Button>
+
+          {isAdmin ? (
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-severity-critical hover:text-severity-critical"
+                >
+                  <Trash2 />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this incident?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently deletes{" "}
+                    <span className="font-mono">{incident.reference}</span> and all of
+                    its witnesses, injured parties and follow-up actions. This cannot
+                    be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deletePending}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDelete()
+                    }}
+                    disabled={deletePending}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deletePending ? <Loader2 className="animate-spin" /> : null}
+                    Delete incident
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
         </div>
       </div>
 

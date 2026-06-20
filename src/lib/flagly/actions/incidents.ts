@@ -213,6 +213,29 @@ export async function setIncidentStatus(
   return ok({ id: incidentId })
 }
 
+export async function deleteIncident(id: string): Promise<ActionResult<{ id: string }>> {
+  const user = await getCurrentUser()
+  if (!user) return fail("You must be signed in.")
+  if (user.role !== "Admin") return fail("Only admins can delete incidents.")
+
+  const incident = await prisma.incident.findUnique({
+    where: { id },
+    select: { id: true },
+  })
+  if (!incident) return fail("Incident not found.")
+
+  try {
+    // Witnesses, injured parties and follow-up actions cascade on delete.
+    await prisma.incident.delete({ where: { id } })
+  } catch (error) {
+    console.error("deleteIncident failed", error)
+    return fail("Could not delete the incident.")
+  }
+
+  revalidatePath("/flagly", "layout")
+  return ok({ id })
+}
+
 export async function closeIncident(raw: unknown): Promise<ActionResult<{ id: string }>> {
   const user = await getCurrentUser()
   if (!user) return fail("You must be signed in.")
