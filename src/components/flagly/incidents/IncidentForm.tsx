@@ -72,13 +72,6 @@ type WitnessRow = {
   statementDate: string
 }
 
-type ActionRow = {
-  key: string
-  description: string
-  assignedTo: string
-  dueDate: string
-}
-
 export type IncidentFormInitial = {
   id: string
   centerId: string
@@ -179,7 +172,6 @@ export function IncidentForm({
 
   const [injured, setInjured] = React.useState<InjuredRow[]>([])
   const [witnesses, setWitnesses] = React.useState<WitnessRow[]>([])
-  const [actions, setActions] = React.useState<ActionRow[]>([])
 
   const isEdit = mode === "edit"
 
@@ -253,11 +245,6 @@ export function IncidentForm({
         statement: w.statement,
         statementDate: w.statementDate,
       })),
-      followUpActions: actions.map((a) => ({
-        description: a.description.trim(),
-        assignedTo: a.assignedTo.trim(),
-        dueDate: a.dueDate,
-      })),
     }
   }
 
@@ -312,7 +299,10 @@ export function IncidentForm({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[760px] space-y-5 pb-28 sm:pb-6">
+    <div
+      data-incident-form
+      className="mx-auto w-full max-w-[760px] space-y-5 pb-28 sm:pb-6"
+    >
       {/* Section 1 — Incident Details */}
       <Section number={1} title="Incident details">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -498,17 +488,17 @@ export function IncidentForm({
         <SeverityTriageBanner severity={severity} />
       </Section>
 
-      {/* Sections 4 & 6 — People + actions are captured at report time only */}
+      {/* Section 4 — People involved (capture at report time; also editable later) */}
       {!isEdit ? (
         <>
           <Section
             number={4}
             title="People involved"
-            description="Optional — injured parties and witnesses can also be added after submission."
+            description="Optional — injured parties and witnesses can also be added later during the investigation."
           >
             <div className="space-y-5">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="flex items-center gap-2 text-sm font-medium">
                     <UserRound className="size-4 text-muted-foreground" />
                     Injured parties
@@ -517,6 +507,7 @@ export function IncidentForm({
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() =>
                       setInjured((rows) => [
                         ...rows,
@@ -742,7 +733,7 @@ export function IncidentForm({
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="flex items-center gap-2 text-sm font-medium">
                     <Users className="size-4 text-muted-foreground" />
                     Witnesses
@@ -751,6 +742,7 @@ export function IncidentForm({
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() =>
                       setWitnesses((rows) => [
                         ...rows,
@@ -886,102 +878,11 @@ export function IncidentForm({
               </div>
             </div>
           </Section>
-
-          <Section number={6} title="Follow-up actions" description="Optional.">
-            <div className="space-y-3">
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setActions((rows) => [
-                      ...rows,
-                      {
-                        key: uid(),
-                        description: "",
-                        assignedTo: "",
-                        dueDate: "",
-                      },
-                    ])
-                  }
-                >
-                  <Plus /> Add follow-up action
-                </Button>
-              </div>
-              {actions.map((row, index) => (
-                <div
-                  key={row.key}
-                  className="space-y-3 rounded-lg border bg-muted/30 p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Action {index + 1}</p>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove action"
-                      onClick={() =>
-                        setActions((rows) => rows.filter((r) => r.key !== row.key))
-                      }
-                    >
-                      <Trash2 className="text-muted-foreground" />
-                    </Button>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Action description" required className="sm:col-span-2">
-                      <Input
-                        value={row.description}
-                        onChange={(e) =>
-                          setActions((rows) =>
-                            rows.map((r) =>
-                              r.key === row.key
-                                ? { ...r, description: e.target.value }
-                                : r
-                            )
-                          )
-                        }
-                      />
-                    </Field>
-                    <Field label="Assigned to" required>
-                      <Input
-                        value={row.assignedTo}
-                        onChange={(e) =>
-                          setActions((rows) =>
-                            rows.map((r) =>
-                              r.key === row.key
-                                ? { ...r, assignedTo: e.target.value }
-                                : r
-                            )
-                          )
-                        }
-                      />
-                    </Field>
-                    <Field label="Due date" required>
-                      <Input
-                        type="date"
-                        value={row.dueDate}
-                        onChange={(e) =>
-                          setActions((rows) =>
-                            rows.map((r) =>
-                              r.key === row.key
-                                ? { ...r, dueDate: e.target.value }
-                                : r
-                            )
-                          )
-                        }
-                      />
-                    </Field>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
         </>
       ) : null}
 
-      {/* Section 5 — Reported By */}
-      <Section number={5} title="Reported by">
+      {/* Reported by — last section (4 in edit mode, 5 on create) */}
+      <Section number={isEdit ? 4 : 5} title="Reported by">
         {isAdmin ? (
           <Field
             label="Reporter"
@@ -1031,11 +932,11 @@ export function IncidentForm({
           </Button>
         </div>
       ) : (
-        <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t bg-background/95 p-3 backdrop-blur sm:static sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-2px_10px_rgba(17,24,39,0.05)] backdrop-blur sm:static sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
           <Button
             variant="outline"
             type="button"
-            className="flex-1 sm:flex-none"
+            className="h-11 flex-1 sm:h-9 sm:flex-none"
             onClick={() => handleCreate(true)}
             disabled={pending}
           >
@@ -1044,7 +945,7 @@ export function IncidentForm({
           </Button>
           <Button
             type="button"
-            className="flex-1 sm:flex-none"
+            className="h-11 flex-1 sm:h-9 sm:flex-none"
             onClick={() => handleCreate(false)}
             disabled={pending}
           >

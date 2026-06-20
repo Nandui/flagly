@@ -329,6 +329,16 @@
     0 2px 4px -2px rgba(17, 24, 39, 0.06);
 }
 
+/* Comfortable touch targets for the incident form on phones (the core
+   mobile-first surface). Controls already use 16px text on mobile to avoid
+   iOS zoom; this bumps their height for easy one-handed tapping. */
+@media (max-width: 639px) {
+  [data-incident-form] [data-slot="input"],
+  [data-incident-form] [data-slot="select-trigger"] {
+    height: 2.75rem;
+  }
+}
+
 @media (pointer: fine) {
   .scroll-slim {
     scrollbar-width: thin;

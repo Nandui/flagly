@@ -54,6 +54,10 @@ Read this before changing code.
   on the dashboard active list. `OPEN` and above do.
 - `ActionStatus.OVERDUE` is stored in the DB and refreshed on read by
   `sweepOverdueActions` in `data/incidents.ts`.
+- **Follow-up actions are added during the investigation**, not on the report
+  form — the report form (`IncidentForm`, mobile-first) captures only the
+  incident + people involved; actions are managed from the incident detail's
+  Follow-up actions tab (`FollowUpActionForm`).
 - **Roles & admin:** roles live in `src/lib/centrely/roles.ts` (`USER_ROLES`:
   Operations Manager, CEO, Duty Manager, Shift Supervisor, Department Supervisor).
   The **Operations Manager** is the admin-equivalent. Never compare
