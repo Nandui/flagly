@@ -24,6 +24,7 @@ import type {
   Witness,
 } from "@prisma/client"
 
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Panel } from "@/components/flagly/shared/Panel"
 import {
@@ -55,7 +56,7 @@ import { InjuredPartyList } from "@/components/flagly/injured/InjuredPartyList"
 import { FollowUpActionForm } from "@/components/flagly/actions/FollowUpActionForm"
 import { FollowUpActionTable } from "@/components/flagly/actions/FollowUpActionTable"
 import { IncidentTimeline, type TimelineEvent } from "@/components/flagly/shared/IncidentTimeline"
-import { daysSince, formatDateTime } from "@/lib/flagly/utils"
+import { daysSince, formatDateTime, severityBorderClass } from "@/lib/flagly/utils"
 import {
   deleteIncident,
   setIncidentStatus,
@@ -189,7 +190,7 @@ export function IncidentDetailView({
 
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-2">
+        <div className={cn("space-y-2 border-l-4 pl-4", severityBorderClass(incident.severity))}>
           <div className="flex flex-wrap items-center gap-2">
             <IncidentSeverityBadge severity={incident.severity} />
             <IncidentStatusBadge status={incident.status} />

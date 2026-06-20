@@ -74,8 +74,8 @@
   --chart-4: #6366f1;
   --chart-5: #14b8a6;
 
-  /* sidebar — white chrome, blue active */
-  --sidebar: #ffffff;
+  /* sidebar — tonal chrome (matches the canvas) so white cards are the focus */
+  --sidebar: #f1f3f5;
   --sidebar-foreground: #4b5563;
   --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
