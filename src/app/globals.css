@@ -4,88 +4,86 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ *
- * Centrely suite tokens — shared neutral/brand system (matches Riskly
- * & Staffly). Flagly layers its own severity/status palette on top.
+ * Ecosystem Visualization design system
+ * Warm terracotta accent · white canvas · slate chrome · Inter + mono
  * ------------------------------------------------------------------ */
 @theme {
-  /* neutrals — cool slate */
-  --color-bg: #f3f6f8;
+  /* neutrals */
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-2: #f8fafc;
-  --color-ink: #0f1c2e;
-  --color-ink-soft: #334155;
-  --color-faint: #94a3b8;
-  --color-line: #e3e8ee;
-  --color-line-strong: #cbd5e1;
+  --color-surface-2: #f6f7f9;
+  --color-ink: #111827;
+  --color-ink-soft: #4b5563;
+  --color-faint: #9ca3af;
+  --color-line: #d8dadf;
+  --color-line-strong: #c4c7ce;
 
-  /* brand — deep teal (legacy; primary accent is indigo, below) */
-  --color-brand: #0e7c86;
-  --color-brand-strong: #0a5b63;
-  --color-brand-soft: #e4f2f3;
-  --color-brand-ink: #06363b;
+  /* brand — warm terracotta / orange */
+  --color-brand: #e48b59;
+  --color-brand-strong: #ed7b46;
+  --color-brand-soft: #fbeae0;
+  --color-brand-ink: #7c3a1c;
 
-  /* sidebar (light) */
-  --color-sidebar-2: #f1f5f9;
-  --color-sidebar-line: #e3e8ee;
-  --color-sidebar-ink: #0f1c2e;
-  --color-sidebar-muted: #64748b;
+  /* chrome surface (slate) — used by the sidebar */
+  --color-sidebar-2: #5e6e88;
+  --color-sidebar-line: #45526a;
+  --color-sidebar-ink: #f3f4f6;
+  --color-sidebar-muted: #b6becc;
 
   /* typefaces (loaded via <link> in layout.tsx, wired through :root) */
   --font-display: var(--ff-display), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--ff-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --radius-card: 0.75rem;
+  --radius-card: 1rem; /* 16px */
 }
 
-/* ------------------------------------------------------------------ *
- * shadcn/ui tokens — indigo accent, light-first
- * ------------------------------------------------------------------ */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem; /* control 8px */
 
-  --ff-display: "Space Grotesk";
-  --ff-body: "IBM Plex Sans";
-  --ff-mono: "IBM Plex Mono";
+  --ff-display: "Inter";
+  --ff-body: "Inter";
+  --ff-mono: "JetBrains Mono";
 
-  --background: #f3f6f8;
-  --foreground: #0f1c2e;
+  --background: #ffffff;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #0f1c2e;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #0f1c2e;
+  --popover-foreground: #111827;
 
-  --primary: #4f46e5; /* indigo-600 */
+  --primary: #e48b59; /* terracotta */
   --primary-foreground: #ffffff;
-  --secondary: #eef1f5;
-  --secondary-foreground: #1e293b;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eef2ff; /* indigo-50 */
-  --accent-foreground: #3730a3; /* indigo-800 */
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+  --muted: #f3f4f6;
+  --muted-foreground: #4b5563;
+  --accent: #fbeae0; /* warm tint */
+  --accent-foreground: #9a4a24;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
-  --border: #e3e8ee;
-  --input: #e2e8f0;
-  --ring: #6366f1; /* indigo-500 */
+  --border: #d8dadf;
+  --input: #d8dadf;
+  --ring: #ed7b46; /* orange focus */
 
-  --chart-1: #4f46e5;
-  --chart-2: #0e7c86;
-  --chart-3: #f59e0b;
-  --chart-4: #64748b;
-  --chart-5: #15803d;
+  --chart-1: #e48b59;
+  --chart-2: #ed7b46;
+  --chart-3: #53617a;
+  --chart-4: #94a3b8;
+  --chart-5: #c2691f;
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #334155;
-  --sidebar-primary: #4f46e5;
+  /* sidebar — slate chrome */
+  --sidebar: #53617a;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-primary: #e48b59;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef2ff;
-  --sidebar-accent-foreground: #3730a3;
-  --sidebar-border: #e3e8ee;
-  --sidebar-ring: #6366f1;
+  --sidebar-accent: #ed7b46; /* active nav */
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #45526a;
+  --sidebar-ring: #ed7b46;
 
-  /* Flagly severity tokens */
+  /* Flagly severity tokens (semantic — kept distinct) */
   --severity-minor: #15803d;
   --severity-minor-bg: #dcfce7;
   --severity-minor-line: #86efac;
@@ -100,10 +98,10 @@
   --severity-critical-line: #fca5a5;
 
   /* Incident status tokens */
-  --status-draft: #94a3b8;
-  --status-draft-bg: #f1f5f9;
-  --status-open: #4f46e5;
-  --status-open-bg: #eef2ff;
+  --status-draft: #6b7280;
+  --status-draft-bg: #f3f4f6;
+  --status-open: #c2691f;
+  --status-open-bg: #fbeae0;
   --status-investigating: #a16207;
   --status-investigating-bg: #fef3c7;
   --status-closed: #15803d;
@@ -111,58 +109,58 @@
 }
 
 .dark {
-  --background: #0b1120;
-  --foreground: #e2e8f0;
-  --card: #0f172a;
-  --card-foreground: #e2e8f0;
-  --popover: #0f172a;
-  --popover-foreground: #e2e8f0;
+  --background: #0e1420;
+  --foreground: #e5e7eb;
+  --card: #161d2b;
+  --card-foreground: #e5e7eb;
+  --popover: #161d2b;
+  --popover-foreground: #e5e7eb;
 
-  --primary: #818cf8; /* indigo-400 */
-  --primary-foreground: #1e1b4b;
-  --secondary: #1e293b;
-  --secondary-foreground: #e2e8f0;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #312e81;
-  --accent-foreground: #e0e7ff;
+  --primary: #e48b59;
+  --primary-foreground: #2a1a0e;
+  --secondary: #1f2733;
+  --secondary-foreground: #e5e7eb;
+  --muted: #1f2733;
+  --muted-foreground: #9ca3af;
+  --accent: #3a2a20;
+  --accent-foreground: #f5c9ae;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --border: #1e293b;
-  --input: #243044;
-  --ring: #818cf8;
+  --border: #273042;
+  --input: #2a3346;
+  --ring: #ed7b46;
 
-  --chart-1: #818cf8;
-  --chart-2: #2dd4bf;
-  --chart-3: #fbbf24;
-  --chart-4: #94a3b8;
-  --chart-5: #4ade80;
+  --chart-1: #e48b59;
+  --chart-2: #ed7b46;
+  --chart-3: #94a3b8;
+  --chart-4: #64748b;
+  --chart-5: #f0a868;
 
-  --sidebar: #070f14;
+  --sidebar: #0b111b;
   --sidebar-foreground: #cbd5e1;
-  --sidebar-primary: #818cf8;
+  --sidebar-primary: #e48b59;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0e2a31;
-  --sidebar-accent-foreground: #e0e7ff;
-  --sidebar-border: #16242b;
-  --sidebar-ring: #818cf8;
+  --sidebar-accent: #ed7b46;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1c2433;
+  --sidebar-ring: #ed7b46;
 
-  /* Centrely neutrals — dark */
-  --color-bg: #0b1120;
-  --color-surface: #0f172a;
-  --color-surface-2: #16223a;
-  --color-ink: #e2e8f0;
+  /* neutrals — dark */
+  --color-bg: #0e1420;
+  --color-surface: #161d2b;
+  --color-surface-2: #1f2733;
+  --color-ink: #e5e7eb;
   --color-ink-soft: #cbd5e1;
-  --color-faint: #64748b;
-  --color-line: #1e293b;
-  --color-line-strong: #334155;
-  --color-sidebar-2: #16223a;
-  --color-sidebar-line: #16242b;
-  --color-sidebar-ink: #e2e8f0;
+  --color-faint: #6b7280;
+  --color-line: #273042;
+  --color-line-strong: #3a455c;
+  --color-sidebar-2: #1c2433;
+  --color-sidebar-line: #1c2433;
+  --color-sidebar-ink: #e5e7eb;
   --color-sidebar-muted: #94a3b8;
 
-  /* Flagly severity tokens — dark */
+  /* Flagly severity — dark */
   --severity-minor: #4ade80;
   --severity-minor-bg: #052e1a;
   --severity-minor-line: #166534;
@@ -176,11 +174,11 @@
   --severity-critical-bg: #450a0a;
   --severity-critical-line: #991b1b;
 
-  /* Incident status tokens — dark */
-  --status-draft: #94a3b8;
-  --status-draft-bg: #1e293b;
-  --status-open: #818cf8;
-  --status-open-bg: #1e1b4b;
+  /* Incident status — dark */
+  --status-draft: #9ca3af;
+  --status-draft-bg: #1f2733;
+  --status-open: #f0a868;
+  --status-open-bg: #3a2a20;
   --status-investigating: #fbbf24;
   --status-investigating-bg: #3b2705;
   --status-closed: #4ade80;
@@ -245,10 +243,10 @@
   --color-status-closed: var(--status-closed);
   --color-status-closed-bg: var(--status-closed-bg);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
 }
 
 @layer base {
@@ -273,7 +271,7 @@
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
+    letter-spacing: -0.01em;
   }
 
   ::selection {
@@ -282,7 +280,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -292,16 +290,28 @@
   }
 }
 
-/* Eyebrow / inspection-tag label motif */
+/* Eyebrow / technical-label motif (JetBrains Mono) */
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
 
-/* Thin custom scrollbar in the light content area */
+/* Soft card depth on the white canvas */
+.shadow-card {
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 1px 3px rgba(17, 24, 39, 0.06);
+}
+.shadow-card-lift {
+  box-shadow:
+    0 4px 6px -1px rgba(17, 24, 39, 0.08),
+    0 2px 4px -2px rgba(17, 24, 39, 0.06);
+}
+
 @media (pointer: fine) {
   .scroll-slim {
     scrollbar-width: thin;
@@ -309,7 +319,6 @@
   }
 }
 
-/* Hide scrollbars on horizontally-scrollable tab strips */
 .scrollbar-none,
 .no-scrollbar {
   scrollbar-width: none;

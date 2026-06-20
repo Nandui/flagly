@@ -40,7 +40,7 @@ export function WitnessList({
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {witnesses.map((witness) => (
-        <div key={witness.id} className="rounded-xl border bg-card p-4 shadow-sm">
+        <div key={witness.id} className="rounded-[var(--radius-card)] border bg-card p-4 shadow-card">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="font-medium">{witness.name}</p>

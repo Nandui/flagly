@@ -46,12 +46,20 @@ Read this before changing code.
 
 ## Design system
 
-- Tokens are defined in `src/app/globals.css` (`:root` + `.dark`) and exposed via
-  `@theme inline`. Flagly's severity/status colour layer is distinct from other
-  modules — use the `severity-*` / `status-*` utility classes, don't hardcode hex.
-- Fonts load via `<link>` to Google Fonts in `src/app/layout.tsx` and are wired to
-  `--font-sans` / `--font-display` / `--font-mono`. Use `font-mono` for references,
-  dates and other data.
+Flagly follows the **Ecosystem Visualization** design language:
+
+- **Palette** — warm terracotta/orange accent (`--primary` `#e48b59`, `--ring`/accent
+  `#ed7b46`) on a **white canvas**, with a **slate chrome** (`#53617a`) used for the
+  sidebar, `#111827`/`#4b5563` text and `#d8dadf` borders.
+- **Radii** — 16px cards (`rounded-[var(--radius-card)]`), 8px controls
+  (`--radius` = `0.5rem`), pill badges. Cards sit on the white canvas with a subtle
+  border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
+- **Type** — Inter (display + body), JetBrains Mono for labels/data. Loaded via
+  `<link>` in `src/app/layout.tsx`, wired to `--font-display` / `--font-sans` /
+  `--font-mono`. Use `font-mono` for references, dates and the `.eyebrow` motif.
+- Tokens live in `src/app/globals.css` (`@theme` neutrals/chrome + `:root`/`.dark`
+  shadcn tokens, mapped through `@theme inline`). Flagly's `severity-*` / `status-*`
+  colour layer is semantic — use those utilities, don't hardcode hex.
 - UI primitives live in `src/components/ui/*` (shadcn-style on Radix). Flagly
   feature components live in `src/components/flagly/*`.
 

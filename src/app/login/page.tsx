@@ -16,7 +16,7 @@ export default async function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex size-12 items-center justify-center rounded-[var(--radius-card)] bg-primary text-primary-foreground">
             <FileWarning className="size-6" />
           </div>
           <div>
@@ -31,7 +31,7 @@ export default async function LoginPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-[var(--radius-card)] border bg-card p-6 shadow-card">
           {hasUsers ? <LoginForm /> : <FirstRunSetup />}
         </div>
 

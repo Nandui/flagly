@@ -19,7 +19,7 @@ comfortably one-handed at 375px.
 - **Zod 4** validation · **next-auth v5** (credentials) · **@tanstack/react-table v8**
 - **recharts 3** (trend chart) · **sonner** (toasts) · **date-fns 4**
 - **jsPDF** (single-incident PDF) · **SheetJS / xlsx** (incident-log export)
-- Fonts: Space Grotesk (display) · IBM Plex Sans (body) · IBM Plex Mono (data)
+- Fonts: Inter (display + body) · JetBrains Mono (labels / data)
 - Light-first design with full dark-mode support, driven by CSS custom-property tokens.
 
 ## Getting started

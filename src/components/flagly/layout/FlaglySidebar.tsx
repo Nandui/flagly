@@ -48,14 +48,16 @@ function NavLink({
       className={cn(
         "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
         active
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-ink/80 hover:bg-sidebar-2 hover:text-ink"
+          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-card"
+          : "text-sidebar-ink/80 hover:bg-sidebar-2 hover:text-sidebar-ink"
       )}
     >
       <Icon
         className={cn(
           "size-[1.15rem] shrink-0",
-          active ? "text-sidebar-accent-foreground" : "text-sidebar-muted group-hover:text-ink"
+          active
+            ? "text-sidebar-accent-foreground"
+            : "text-sidebar-muted group-hover:text-sidebar-ink"
         )}
       />
       {item.label}
@@ -86,10 +88,10 @@ export function FlaglySidebar({
           <FileWarning className="size-5" />
         </div>
         <div className="leading-none">
-          <span className="block font-display text-lg font-semibold tracking-tight text-ink">
+          <span className="block font-display text-lg font-semibold tracking-tight text-sidebar-ink">
             Flagly
           </span>
-          <span className="text-[0.65rem] uppercase tracking-[0.16em] text-sidebar-muted">
+          <span className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-sidebar-muted">
             Incident reporting
           </span>
         </div>
@@ -108,7 +110,9 @@ export function FlaglySidebar({
 
         {isAdmin ? (
           <>
-            <p className="eyebrow px-3 pb-1 pt-4">Admin</p>
+            <p className="px-3 pb-1 pt-4 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-sidebar-muted">
+              Admin
+            </p>
             {ADMIN_NAV.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
             ))}
@@ -123,7 +127,7 @@ export function FlaglySidebar({
             {initials(user.name || user.email)}
           </span>
           <div className="min-w-0 flex-1 leading-tight">
-            <p className="truncate text-sm font-medium text-ink">{user.name}</p>
+            <p className="truncate text-sm font-medium text-sidebar-ink">{user.name}</p>
             <p className="truncate text-[0.7rem] text-sidebar-muted">{user.role}</p>
           </div>
           <ThemeToggle />
@@ -132,7 +136,7 @@ export function FlaglySidebar({
               type="submit"
               aria-label="Sign out"
               title="Sign out"
-              className="flex size-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-2 hover:text-ink"
+              className="flex size-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-2 hover:text-sidebar-ink"
             >
               <LogOut className="size-4" />
             </button>

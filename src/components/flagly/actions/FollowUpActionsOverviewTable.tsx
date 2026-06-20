@@ -265,7 +265,7 @@ export function FollowUpActionsOverviewTable({
         </div>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

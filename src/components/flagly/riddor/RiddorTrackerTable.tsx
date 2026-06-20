@@ -261,7 +261,7 @@ export function RiddorTrackerTable({ flags }: { flags: RiddorListItem[] }) {
         </Select>
       </div>
 
-      <div className="rounded-xl border bg-card">
+      <div className="rounded-[var(--radius-card)] border bg-card shadow-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

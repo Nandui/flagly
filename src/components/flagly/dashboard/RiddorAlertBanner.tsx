@@ -28,7 +28,7 @@ export function RiddorAlertBanner({
     : "bg-severity-significant-bg border-severity-significant-line text-severity-significant"
 
   return (
-    <div className={cn("rounded-xl border p-5 shadow-sm", tone)}>
+    <div className={cn("rounded-[var(--radius-card)] border p-5 shadow-card", tone)}>
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 size-5 shrink-0" />
         <div className="min-w-0 flex-1 space-y-3">

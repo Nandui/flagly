@@ -107,7 +107,7 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-5 shadow-sm sm:p-6">
+    <section className="space-y-4 rounded-[var(--radius-card)] border bg-card p-5 shadow-card sm:p-6">
       <div className="space-y-1">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold">
           <span className="flex size-6 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">

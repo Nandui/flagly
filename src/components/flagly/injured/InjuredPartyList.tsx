@@ -44,7 +44,7 @@ export function InjuredPartyList({
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {parties.map((party) => (
-        <div key={party.id} className="rounded-xl border bg-card p-4 shadow-sm">
+        <div key={party.id} className="rounded-[var(--radius-card)] border bg-card p-4 shadow-card">
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">

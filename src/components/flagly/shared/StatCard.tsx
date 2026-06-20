@@ -19,17 +19,17 @@ export function StatCard({
   hint?: string
 }) {
   const toneClasses: Record<string, string> = {
-    default: "text-muted-foreground",
-    danger: "text-severity-critical",
-    warning: "text-severity-significant",
-    success: "text-severity-minor",
+    default: "bg-accent text-primary",
+    danger: "bg-severity-critical-bg text-severity-critical",
+    warning: "bg-severity-significant-bg text-severity-significant",
+    success: "bg-severity-minor-bg text-severity-minor",
   }
 
   const body = (
     <div
       className={cn(
-        "group flex items-start justify-between gap-3 rounded-[var(--radius-card)] border bg-card p-5 shadow-xs transition-colors",
-        href && "hover:border-primary/40 hover:bg-accent/40"
+        "group flex items-start justify-between gap-3 rounded-[var(--radius-card)] border bg-card p-6 shadow-card transition-all duration-200",
+        href && "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card-lift"
       )}
     >
       <div className="space-y-1">
@@ -39,7 +39,7 @@ export function StatCard({
       </div>
       <div
         className={cn(
-          "flex size-9 items-center justify-center rounded-lg bg-muted",
+          "flex size-10 items-center justify-center rounded-lg",
           toneClasses[tone]
         )}
       >
