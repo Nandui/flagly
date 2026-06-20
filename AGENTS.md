@@ -46,14 +46,15 @@ Read this before changing code.
 
 ## Design system
 
-Flagly follows the **Ecosystem Visualization** design language:
+Flagly follows the **Spatial Interface Systems** design language:
 
-- **Palette** — warm terracotta/orange accent (`--primary` `#e48b59`, `--ring`/accent
-  `#ed7b46`) on a **white canvas**, with a **slate chrome** (`#53617a`) used for the
-  sidebar, `#111827`/`#4b5563` text and `#d8dadf` borders.
-- **Radii** — 16px cards (`rounded-[var(--radius-card)]`), 8px controls
-  (`--radius` = `0.5rem`), pill badges. Cards sit on the white canvas with a subtle
-  border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
+- **Palette** — blue accent (`--primary` `#3b82f6`, accent/`--ring` `#2563eb`) on
+  **white surfaces** (canvas, sidebar and cards are all white), with `#111827`/
+  `#4b5563` text and `#e5e7eb` borders. The sidebar is white with a blue-50 active
+  state.
+- **Radii** — 11px cards (`rounded-[var(--radius-card)]`), 7px controls
+  (`--radius` = `0.4375rem`), pill badges. Panels sit on the white canvas with a
+  subtle border + the `.shadow-card` depth (hover → `.shadow-card-lift`).
 - **Type** — Inter (display + body), JetBrains Mono for labels/data. Loaded via
   `<link>` in `src/app/layout.tsx`, wired to `--font-display` / `--font-sans` /
   `--font-mono`. Use `font-mono` for references, dates and the `.eyebrow` motif.

@@ -23,13 +23,13 @@ import {
 } from "@/components/ui/card"
 
 const TYPE_FILLS: Record<IncidentType, string> = {
-  ACCIDENT: "#e48b59",
-  NEAR_MISS: "#ed7b46",
-  PROPERTY_DAMAGE: "#c2691f",
+  ACCIDENT: "#3b82f6",
+  NEAR_MISS: "#2563eb",
+  PROPERTY_DAMAGE: "#0ea5e9",
   VIOLENCE_AGGRESSION: "#b91c1c",
   HAZARDOUS_SUBSTANCE: "#15803d",
-  FIRE_OR_EVACUATION: "#9a3412",
-  OTHER: "#53617a",
+  FIRE_OR_EVACUATION: "#c2410c",
+  OTHER: "#64748b",
 }
 
 const TYPE_ORDER: IncidentType[] = [
